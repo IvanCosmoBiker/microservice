@@ -1,0 +1,54 @@
+{
+    "RabbitMq":{
+        "Login":"device",
+        "Password":"ephor2021",
+        "Address":"188.225.18.140",
+        "Port":"5672",
+        "maxAttempts": 10,
+        "ExecuteTimeSeconds": 200,
+        "BackOffPolicySendMassage": [2,4,8,16,32,64]
+    },
+    "Db":{
+        "Login":"goadmin",
+        "Password":"go2021",
+        "Address":"127.0.0.1",
+        "DatabaseName":"ephortest",
+        "Port":5432,
+        "PreferSimpleProtocol": false,
+        "PgConnectionPool": 5,
+        "PgConnectionMin": 2,
+        "PgConnectionMax": 5
+    },
+    "Services":{
+        "Http":{
+            "Address":"127.0.0.1",
+            "Port":"8040"
+        },
+        "EphorPay":{
+            "NameQueue": "ephor.1.pay",
+            "Bank":{
+                "ExecuteMinutes":3,
+                "PollingTime": 1500 
+            }
+        },
+        "EphorCommand":{
+            "NameQueue": "ephor.1.command",
+            "ExecuteMinutes": 1,
+            "Listener":{
+                "ExecuteMinutes": 1
+            }
+        },
+        "EphorFiscal":{
+            "NameQueue": "ephor.1.fiscal",
+            "ResponseUrl": "http://dev10.ephor.online/api/1.0/Fiscal.php?action=Finish",
+            "ExecuteMinutes": 10,
+            "SleepMilliSec": 1500,
+            "Listener":{
+                "ExecuteMinutes": 1
+            }
+        }
+    },
+    "ExecuteMinutes": 10,
+    "LogFile": "Log.txt",
+    "Debug": true
+}

@@ -1,0 +1,375 @@
+http.go:73: HTTP server Shutdown completed successfully
+manager.go:66: 1
+manager.go:73: 2
+http.go:28: http: Server closed
+manager.go:139: shutting down
+manager.go:151: closing connection...
+init.go:99: close Channel Ok - Pay
+init.go:257: Close Channel
+consumer.go:136: &rabbitmq.Connection{Dsn:"amqp://device:ephor2021@188.225.18.140:5672", BackoffPolicy:map[string]int{"count":400, "time":10}, Conn:(*amqp.Connection)(0xc0000ea000), ServiceChannel:(*amqp.Channel)(0xc000098d80), Mu:sync.RWMutex{w:sync.Mutex{state:1, sema:0x0}, writerSem:0x0, readerSem:0x0, readerCount:-1073741824, readerWait:0}, ChannelPool:map[rabbitmq.ChannelPoolItemKey]*amqp.Channel{rabbitmq.ChannelPoolItemKey{Queue:"", Consumer:"", Exchange:"amq.topic", Key:"ephor.1.dev.861715031834345"}:(*amqp.Channel)(0xc000099d40), rabbitmq.ChannelPoolItemKey{Queue:"ephor.1.pay", Consumer:"Pay", Exchange:"", Key:""}:(*amqp.Channel)(0xc0001bea20)}, ChannelPoolMu:sync.RWMutex{w:sync.Mutex{state:0, sema:0x0}, writerSem:0x0, readerSem:0x0, readerCount:0, readerWait:0}, isClosed:true, ErrorClose:false, ErrorGroup:(*errgroup.Group)(0xc000088000), ChanCtx:(*context.emptyCtx)(0xc00002a0c0), ReconnectRabbit:(chan int)(0xc00008a420)}
+init.go:99: close Channel Ok - 
+init.go:257: Close Channel
+init.go:104: close rabbitMQ connection OK
+manager.go:143: shutted down
+manager.go:75: 3
+manager.go:77: 4
+ephorsale.go:44: I'm Stopping!
+ephorsale.go:74: Load Config...
+ephorsale.go:97: Load Logger...
+ephorsale.go:106: Start SaleService
+ephorsale.go:27: Running in terminal.
+ephorsale.go:37: goadmin
+init.go:45: user=goadmin password=go2021 host=127.0.0.1 port=5432 dbname=ephortest sslmode=disable pool_max_conns=5
+init.go:47: &{ConnConfig:0xc0000a6480 BeforeConnect:<nil> AfterConnect:<nil> BeforeAcquire:<nil> AfterRelease:<nil> MaxConnLifetime:1h0m0s MaxConnLifetimeJitter:0s MaxConnIdleTime:30m0s MaxConns:5 MinConns:0 HealthCheckPeriod:1m0s LazyConnect:false createdByParseConfig:true}
+init.go:53: &{Config:{Host:127.0.0.1 Port:5432 Database:ephortest User:goadmin Password:go2021 TLSConfig:<nil> ConnectTimeout:0s DialFunc:0x7240a0 LookupFunc:0x7241a0 BuildFrontend:0x723680 RuntimeParams:map[] KerberosSrvName: KerberosSpn: Fallbacks:[] ValidateConnect:<nil> AfterConnect:<nil> OnNotice:<nil> OnNotification:<nil> createdByParseConfig:true} Logger:<nil> LogLevel:info connString:user=goadmin password=go2021 host=127.0.0.1 port=5432 dbname=ephortest sslmode=disable pool_max_conns=5 BuildStatementCache:0x83f160 PreferSimpleProtocol:false createdByParseConfig:true}
+manager.go:129: establishing connection...
+init.go:117: get Connection
+init.go:124: get Channel
+init.go:141: starting connection watcher
+http.go:42: 127.0.0.1:8040
+consumer.go:43: New Consumer
+consumer.go:163: New Subscribe
+manager.go:91: PayStart
+init.go:248: starting channel watcher
+consumer.go:116: consumer connected
+manager.go:147: &{SaleAutomatPostPaid:{cfg:0xc000001680 QueueManager:0xc000125b00 FiscalM:0xc00005f120 PaymentM:0xc000125c40 Dispetcher:0xc000174b40}}
+Store.go:37: INSERT INTO main.transaction (token_id, token_type, account_id, automat_id, date, sum, ps_type, pay_type, qr_format, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id, noise, token_id, token_type, account_id, customer_id, automat_id, date, sum, ps_type, ps_order, ps_tid, ps_code, ps_desc, ps_invoice_id, pay_type, fn, fd, fp, f_type, f_receipt, f_desc, f_status, qr_format, f_qr, status, error
+TransactionDispetcher.go:106: map[id:1952 noise:11038006]
+TransactionDispetcher.go:114: &{Date: Status:0 ChannelMessage:0xc000072d20 TimeOut:0xc000072cc0 Config:{Tid:1952 AccountId:1 AutomatId:16 Imei:861715031834345 TokenType:4 Noise:11038006 DeviceType:0 CurrensyCode:643} Payment:{Status:0 PayType:2 TokenType:4 PaymentId:0 Sum:200 CurrensyCode:643 TypeSale:0 DebitSum:0 Type:1 OrderId: OperationId: InvoiceId: Tid: SecretKey: KeyPayment: Service_id: TidPaymentSystem: HostPaymentSystem: SbolBankInvoiceId: Login:P690209812752-api Password:xG-zG-z-YZmE8,f MerchantId: GateWay:sberbank Token: UserPhone:9108303436 ReturnUrl: DeepLink: SbpPoint: Language:RU Description:} Fiscal:{Config:{Id:0 Name: Type:0 Dev_interface:0 AutomatNumber:0 Login: Password: Phone: Email: Dev_addr: Dev_port:0 Ofd_addr: Ofd_port:0 Inn: Auth_public_key: Auth_private_key: Sign_private_key: Param1: Use_sn:0 Add_fiscal:0 Id_shift: Fr_disable_cash:0 Fr_disable_cashless:0 Ffd_version:0 MaxSum:0 QrFormat:1} Message: Status: Code:0 StatusCode:0 Fiscalization:0 Qr:0 FfDisableCashless:0 FfDisableCash:0 Fields:{Fp: Fn: DateFisal: Fd:0}} Point:{Address: PointName: Id:0} TaxSystem:{Type:0 TaxRate:0} Products:[]}
+TransactionDispetcher.go:185: lock
+manager.go:182: map[message:ok tid:11038006]
+core.go:46: userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderNumber=W-155919-E&amount=200&returnUrl=https://paytest.ephor.online&description=&phone=9108303436&jsonParams={"back2app":true}
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode: ErrorMessage: OrderId:d8ccd763-1b81-7f16-8259-75d202f21b66 FormUrl:https://securepayments.sberbank.ru/payment/merchants/sbersafe_sberid/payment_ru.html?mdOrder=d8ccd763-1b81-7f16-8259-75d202f21b66 ExternalParams:{SbolBankInvoiceId:ffff0e1a95614f3eac0a8ab0669616cb SbolDeepLink: SbolInactive:false}}
+http.go:70: {"orderId":"d8ccd763-1b81-7f16-8259-75d202f21b66","formUrl":"https://securepayments.sberbank.ru/payment/merchants/sbersafe_sberid/payment_ru.html?mdOrder=d8ccd763-1b81-7f16-8259-75d202f21b66","externalParams":{"sbolInactive":"false","sbolBankInvoiceId":"ffff0e1a95614f3eac0a8ab0669616cb"}}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/registerPreAuth.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderNumber=W-155919-E&amount=200&returnUrl=https://paytest.ephor.online&description=&phone=9108303436&jsonParams={"back2app":true}
+init.go:88: &{StatusCode:0 ErrorCode: ErrorMessage: OrderId:d8ccd763-1b81-7f16-8259-75d202f21b66 FormUrl:https://securepayments.sberbank.ru/payment/merchants/sbersafe_sberid/payment_ru.html?mdOrder=d8ccd763-1b81-7f16-8259-75d202f21b66 ExternalParams:{SbolBankInvoiceId:ffff0e1a95614f3eac0a8ab0669616cb SbolDeepLink: SbolInactive:false}}
+init.go:105: ffff0e1a95614f3eac0a8ab0669616cb
+init.go:106: d8ccd763-1b81-7f16-8259-75d202f21b66
+manager.go:100: map[code:2 description:Заказ принят, ожидание оплаты invoiceId:ffff0e1a95614f3eac0a8ab0669616cb message:Заказ принят, ожидание оплаты orderId:d8ccd763-1b81-7f16-8259-75d202f21b66 status:true]
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:W-155919-E OrderStatus:0 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum: RefundedDate: PaymentWay: AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"W-155919-E","orderStatus":0,"actionCode":-100,"actionCodeDescription":"","amount":200,"currency":"643","date":1663948759661,"orderDescription":"","merchantOrderParams":[{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"ffff0e1a95614f3eac0a8ab0669616cb"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"d8ccd763-1b81-7f16-8259-75d202f21b66"}],"terminalId":"24593088","paymentAmountInfo":{"paymentState":"CREATED","approvedAmount":0,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=d8ccd763-1b81-7f16-8259-75d202f21b66
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:W-155919-E OrderStatus:1 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum:226687093445 RefundedDate: PaymentWay:SBRF_SBOL AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"W-155919-E","orderStatus":1,"actionCode":0,"actionCodeDescription":"","amount":200,"currency":"643","date":1663948759661,"orderDescription":"","merchantOrderParams":[{"name":"externalPaymentSource","value":"CARD"},{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"externalPaymentSource","value":"CARD"},{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"ffff0e1a95614f3eac0a8ab0669616cb"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"d8ccd763-1b81-7f16-8259-75d202f21b66"}],"cardAuthInfo":{"maskedPan":"533669XXXXXX6698","expiration":"202303","approvalCode":"272960","paymentSystem":"MASTERCARD","productCategory":"CREDIT","pan":"533669XXXXXX6698"},"authDateTime":1663948769391,"terminalId":"24593090","authRefNum":"226687093445","paymentAmountInfo":{"paymentState":"APPROVED","approvedAmount":200,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false,"paymentWay":"SBRF_SBOL"}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=d8ccd763-1b81-7f16-8259-75d202f21b66
+publisher.go:75: send message: {"a":2,"m":1,"sum":200,"tid":1952}
+publisher.go:78: connect publisher to rabbitMQ
+publisher.go:93: connect publisher to rabbitMQ
+init.go:248: starting channel watcher
+postpaid.go:287: 
+ [x] Timer
+consumer.go:128: got new event {"d":"861715031834345","tid":1952,"st":1}
+manager.go:32: {D:861715031834345 A:0 Tid:1952 St:1 Wid:0 Sum:0 Err:0}
+TransactionDispetcher.go:195: 
+ [x] &{Date: Status:9 ChannelMessage:0xc000072d20 TimeOut:0xc000072cc0 Config:{Tid:1952 AccountId:1 AutomatId:16 Imei:861715031834345 TokenType:4 Noise:11038006 DeviceType:0 CurrensyCode:643} Payment:{Status:0 PayType:2 TokenType:4 PaymentId:0 Sum:200 CurrensyCode:643 TypeSale:0 DebitSum:0 Type:1 OrderId:d8ccd763-1b81-7f16-8259-75d202f21b66 OperationId: InvoiceId: Tid: SecretKey: KeyPayment: Service_id: TidPaymentSystem: HostPaymentSystem: SbolBankInvoiceId:ffff0e1a95614f3eac0a8ab0669616cb Login:P690209812752-api Password:xG-zG-z-YZmE8,f MerchantId: GateWay:sberbank Token: UserPhone:9108303436 ReturnUrl:https://paytest.ephor.online DeepLink: SbpPoint: Language:RU Description:} Fiscal:{Config:{Id:0 Name: Type:0 Dev_interface:0 AutomatNumber:0 Login: Password: Phone: Email: Dev_addr: Dev_port:0 Ofd_addr: Ofd_port:0 Inn: Auth_public_key: Auth_private_key: Sign_private_key: Param1: Use_sn:0 Add_fiscal:0 Id_shift: Fr_disable_cash:0 Fr_disable_cashless:0 Ffd_version:0 MaxSum:0 QrFormat:1} Message: Status: Code:0 StatusCode:0 Fiscalization:0 Qr:0 FfDisableCashless:0 FfDisableCash:0 Fields:{Fp: Fn: DateFisal: Fd:0}} Point:{Address: PointName: Id:0} TaxSystem:{Type:0 TaxRate:0} Products:[]}
+postpaid.go:318: 
+ [x] Timer ok
+postpaid.go:319: Timer ok
+postpaid.go:287: 
+ [x] Timer
+consumer.go:128: got new event {"d":"861715031834345","tid":1952,"st":3,"wid":38,"sum":100}
+manager.go:32: {D:861715031834345 A:0 Tid:1952 St:3 Wid:38 Sum:100 Err:0}
+TransactionDispetcher.go:195: 
+ [x] &{Date: Status:9 ChannelMessage:0xc000072d20 TimeOut:0xc000072cc0 Config:{Tid:1952 AccountId:1 AutomatId:16 Imei:861715031834345 TokenType:4 Noise:11038006 DeviceType:0 CurrensyCode:643} Payment:{Status:0 PayType:2 TokenType:4 PaymentId:0 Sum:200 CurrensyCode:643 TypeSale:0 DebitSum:0 Type:1 OrderId:d8ccd763-1b81-7f16-8259-75d202f21b66 OperationId: InvoiceId: Tid: SecretKey: KeyPayment: Service_id: TidPaymentSystem: HostPaymentSystem: SbolBankInvoiceId:ffff0e1a95614f3eac0a8ab0669616cb Login:P690209812752-api Password:xG-zG-z-YZmE8,f MerchantId: GateWay:sberbank Token: UserPhone:9108303436 ReturnUrl:https://paytest.ephor.online DeepLink: SbpPoint: Language:RU Description:} Fiscal:{Config:{Id:0 Name: Type:0 Dev_interface:0 AutomatNumber:0 Login: Password: Phone: Email: Dev_addr: Dev_port:0 Ofd_addr: Ofd_port:0 Inn: Auth_public_key: Auth_private_key: Sign_private_key: Param1: Use_sn:0 Add_fiscal:0 Id_shift: Fr_disable_cash:0 Fr_disable_cashless:0 Ffd_version:0 MaxSum:0 QrFormat:1} Message: Status: Code:0 StatusCode:0 Fiscalization:0 Qr:0 FfDisableCashless:0 FfDisableCash:0 Fields:{Fp: Fn: DateFisal: Fd:0}} Point:{Address: PointName: Id:0} TaxSystem:{Type:0 TaxRate:0} Products:[]}
+postpaid.go:318: 
+ [x] Timer ok
+postpaid.go:319: Timer ok
+Store.go:134: SELECT id, automat_id, config_id, from_date, to_date FROM account1.automat_config  WHERE  to_date IS NULL  AND automat_id = $1
+postpaid.go:145: &{Id:724 Automat_id:16 Config_id:507 From_date:2022-06-01T21:00:00Z To_date:}
+postpaid.go:161: map[account_id:1 config_id:507 ware_id:38]
+postpaid.go:163: <nil>
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно"}
+http.go:71: https://securepayments.sberbank.ru//payment/rest/reverse.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=d8ccd763-1b81-7f16-8259-75d202f21b66&amount=200
+consumer.go:128: got new event {"d":"861715031834345","tid":1952,"st":4,"wid":38,"sum":100,"err":0}
+manager.go:32: {D:861715031834345 A:0 Tid:1952 St:4 Wid:38 Sum:100 Err:0}
+TransactionDispetcher.go:195: 
+ [x] <nil>
+consumer.go:130: Fail send
+http.go:73: HTTP server Shutdown completed successfully
+manager.go:66: 1
+manager.go:73: 2
+manager.go:139: shutting down
+http.go:28: http: Server closed
+manager.go:151: closing connection...
+init.go:99: close Channel Ok - Pay
+init.go:257: Close Channel
+consumer.go:136: &rabbitmq.Connection{Dsn:"amqp://device:ephor2021@188.225.18.140:5672", BackoffPolicy:map[string]int{"count":400, "time":10}, Conn:(*amqp.Connection)(0xc000146640), ServiceChannel:(*amqp.Channel)(0xc0000a7200), Mu:sync.RWMutex{w:sync.Mutex{state:1, sema:0x0}, writerSem:0x0, readerSem:0x0, readerCount:-1073741824, readerWait:0}, ChannelPool:map[rabbitmq.ChannelPoolItemKey]*amqp.Channel{rabbitmq.ChannelPoolItemKey{Queue:"", Consumer:"", Exchange:"amq.topic", Key:"ephor.1.dev.861715031834345"}:(*amqp.Channel)(0xc0000a6120), rabbitmq.ChannelPoolItemKey{Queue:"ephor.1.pay", Consumer:"Pay", Exchange:"", Key:""}:(*amqp.Channel)(0xc0001b6480)}, ChannelPoolMu:sync.RWMutex{w:sync.Mutex{state:0, sema:0x0}, writerSem:0x0, readerSem:0x0, readerCount:0, readerWait:0}, isClosed:true, ErrorClose:false, ErrorGroup:(*errgroup.Group)(0xc000084040), ChanCtx:(*context.emptyCtx)(0xc00002a0c0), ReconnectRabbit:(chan int)(0xc000072660)}
+init.go:99: close Channel Ok - 
+init.go:257: Close Channel
+init.go:104: close rabbitMQ connection OK
+manager.go:143: shutted down
+manager.go:75: 3
+manager.go:77: 4
+ephorsale.go:44: I'm Stopping!
+ephorsale.go:74: Load Config...
+ephorsale.go:97: Load Logger...
+ephorsale.go:106: Start SaleService
+ephorsale.go:27: Running in terminal.
+ephorsale.go:37: goadmin
+init.go:45: user=goadmin password=go2021 host=127.0.0.1 port=5432 dbname=ephortest sslmode=disable pool_max_conns=5
+init.go:47: &{ConnConfig:0xc000127c20 BeforeConnect:<nil> AfterConnect:<nil> BeforeAcquire:<nil> AfterRelease:<nil> MaxConnLifetime:1h0m0s MaxConnLifetimeJitter:0s MaxConnIdleTime:30m0s MaxConns:5 MinConns:0 HealthCheckPeriod:1m0s LazyConnect:false createdByParseConfig:true}
+init.go:53: &{Config:{Host:127.0.0.1 Port:5432 Database:ephortest User:goadmin Password:go2021 TLSConfig:<nil> ConnectTimeout:0s DialFunc:0x7240a0 LookupFunc:0x7241a0 BuildFrontend:0x723680 RuntimeParams:map[] KerberosSrvName: KerberosSpn: Fallbacks:[] ValidateConnect:<nil> AfterConnect:<nil> OnNotice:<nil> OnNotification:<nil> createdByParseConfig:true} Logger:<nil> LogLevel:info connString:user=goadmin password=go2021 host=127.0.0.1 port=5432 dbname=ephortest sslmode=disable pool_max_conns=5 BuildStatementCache:0x83f160 PreferSimpleProtocol:false createdByParseConfig:true}
+manager.go:129: establishing connection...
+init.go:117: get Connection
+init.go:124: get Channel
+init.go:141: starting connection watcher
+http.go:42: 127.0.0.1:8040
+consumer.go:43: New Consumer
+consumer.go:163: New Subscribe
+manager.go:91: PayStart
+init.go:248: starting channel watcher
+consumer.go:116: consumer connected
+manager.go:147: &{SaleAutomatPostPaid:{cfg:0xc000001980 QueueManager:0xc0001cc700 FiscalM:0xc00005f620 PaymentM:0xc0001cc840 Dispetcher:0xc000176bd0}}
+Store.go:37: INSERT INTO main.transaction (token_id, token_type, account_id, automat_id, date, sum, ps_type, pay_type, qr_format, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id, noise, token_id, token_type, account_id, customer_id, automat_id, date, sum, ps_type, ps_order, ps_tid, ps_code, ps_desc, ps_invoice_id, pay_type, fn, fd, fp, f_type, f_receipt, f_desc, f_status, qr_format, f_qr, status, error
+TransactionDispetcher.go:106: map[id:1953 noise:14083791]
+TransactionDispetcher.go:114: &{Date: Status:0 ChannelMessage:0xc000076f60 TimeOut:0xc000076f00 Config:{Tid:1953 AccountId:1 AutomatId:16 Imei:861715031834345 TokenType:4 Noise:14083791 DeviceType:0 CurrensyCode:643} Payment:{Status:0 PayType:2 TokenType:4 PaymentId:0 Sum:200 CurrensyCode:643 TypeSale:0 DebitSum:0 Type:1 OrderId: OperationId: InvoiceId: Tid: SecretKey: KeyPayment: Service_id: TidPaymentSystem: HostPaymentSystem: SbolBankInvoiceId: Login:P690209812752-api Password:xG-zG-z-YZmE8,f MerchantId: GateWay:sberbank Token: UserPhone:9108303436 ReturnUrl: DeepLink: SbpPoint: Language:RU Description:} Fiscal:{Config:{Id:0 Name: Type:0 Dev_interface:0 AutomatNumber:0 Login: Password: Phone: Email: Dev_addr: Dev_port:0 Ofd_addr: Ofd_port:0 Inn: Auth_public_key: Auth_private_key: Sign_private_key: Param1: Use_sn:0 Add_fiscal:0 Id_shift: Fr_disable_cash:0 Fr_disable_cashless:0 Ffd_version:0 MaxSum:0 QrFormat:1} Message: Status: Code:0 StatusCode:0 Fiscalization:0 Qr:0 FfDisableCashless:0 FfDisableCash:0 Fields:{Fp: Fn: DateFisal: Fd:0}} Point:{Address: PointName: Id:0} TaxSystem:{Type:0 TaxRate:0} Products:[]}
+TransactionDispetcher.go:185: lock
+manager.go:182: map[message:ok tid:14083791]
+core.go:46: userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderNumber=v-16712-e&amount=200&returnUrl=https://paytest.ephor.online&description=&phone=9108303436&jsonParams={"back2app":true}
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode: ErrorMessage: OrderId:d144777f-6d3e-7f34-ab67-db1902f21b66 FormUrl:https://securepayments.sberbank.ru/payment/merchants/sbersafe_sberid/payment_ru.html?mdOrder=d144777f-6d3e-7f34-ab67-db1902f21b66 ExternalParams:{SbolBankInvoiceId:be726cf0f5084dbd9e5d91dc3b4cbe5a SbolDeepLink: SbolInactive:false}}
+http.go:70: {"orderId":"d144777f-6d3e-7f34-ab67-db1902f21b66","formUrl":"https://securepayments.sberbank.ru/payment/merchants/sbersafe_sberid/payment_ru.html?mdOrder=d144777f-6d3e-7f34-ab67-db1902f21b66","externalParams":{"sbolInactive":"false","sbolBankInvoiceId":"be726cf0f5084dbd9e5d91dc3b4cbe5a"}}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/registerPreAuth.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderNumber=v-16712-e&amount=200&returnUrl=https://paytest.ephor.online&description=&phone=9108303436&jsonParams={"back2app":true}
+init.go:88: &{StatusCode:0 ErrorCode: ErrorMessage: OrderId:d144777f-6d3e-7f34-ab67-db1902f21b66 FormUrl:https://securepayments.sberbank.ru/payment/merchants/sbersafe_sberid/payment_ru.html?mdOrder=d144777f-6d3e-7f34-ab67-db1902f21b66 ExternalParams:{SbolBankInvoiceId:be726cf0f5084dbd9e5d91dc3b4cbe5a SbolDeepLink: SbolInactive:false}}
+init.go:105: be726cf0f5084dbd9e5d91dc3b4cbe5a
+init.go:106: d144777f-6d3e-7f34-ab67-db1902f21b66
+manager.go:100: map[code:2 description:Заказ принят, ожидание оплаты invoiceId:be726cf0f5084dbd9e5d91dc3b4cbe5a message:Заказ принят, ожидание оплаты orderId:d144777f-6d3e-7f34-ab67-db1902f21b66 status:true]
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:v-16712-e OrderStatus:0 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum: RefundedDate: PaymentWay: AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"v-16712-e","orderStatus":0,"actionCode":-100,"actionCodeDescription":"","amount":200,"currency":"643","date":1663949233129,"orderDescription":"","merchantOrderParams":[{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"be726cf0f5084dbd9e5d91dc3b4cbe5a"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"d144777f-6d3e-7f34-ab67-db1902f21b66"}],"terminalId":"24593088","paymentAmountInfo":{"paymentState":"CREATED","approvedAmount":0,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=d144777f-6d3e-7f34-ab67-db1902f21b66
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:v-16712-e OrderStatus:0 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum: RefundedDate: PaymentWay: AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"v-16712-e","orderStatus":0,"actionCode":-100,"actionCodeDescription":"","amount":200,"currency":"643","date":1663949233129,"orderDescription":"","merchantOrderParams":[{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"be726cf0f5084dbd9e5d91dc3b4cbe5a"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"d144777f-6d3e-7f34-ab67-db1902f21b66"}],"terminalId":"24593088","paymentAmountInfo":{"paymentState":"CREATED","approvedAmount":0,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=d144777f-6d3e-7f34-ab67-db1902f21b66
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:v-16712-e OrderStatus:0 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum: RefundedDate: PaymentWay: AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"v-16712-e","orderStatus":0,"actionCode":-100,"actionCodeDescription":"","amount":200,"currency":"643","date":1663949233129,"orderDescription":"","merchantOrderParams":[{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"be726cf0f5084dbd9e5d91dc3b4cbe5a"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"d144777f-6d3e-7f34-ab67-db1902f21b66"}],"terminalId":"24593088","paymentAmountInfo":{"paymentState":"CREATED","approvedAmount":0,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=d144777f-6d3e-7f34-ab67-db1902f21b66
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:v-16712-e OrderStatus:1 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum:226687126405 RefundedDate: PaymentWay:SBRF_SBOL AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"v-16712-e","orderStatus":1,"actionCode":0,"actionCodeDescription":"","amount":200,"currency":"643","date":1663949233129,"orderDescription":"","merchantOrderParams":[{"name":"externalPaymentSource","value":"CARD"},{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"externalPaymentSource","value":"CARD"},{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"be726cf0f5084dbd9e5d91dc3b4cbe5a"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"d144777f-6d3e-7f34-ab67-db1902f21b66"}],"cardAuthInfo":{"maskedPan":"533669XXXXXX6698","expiration":"202303","approvalCode":"255371","paymentSystem":"MASTERCARD","productCategory":"CREDIT","pan":"533669XXXXXX6698"},"authDateTime":1663949251015,"terminalId":"24593090","authRefNum":"226687126405","paymentAmountInfo":{"paymentState":"APPROVED","approvedAmount":200,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false,"paymentWay":"SBRF_SBOL"}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=d144777f-6d3e-7f34-ab67-db1902f21b66
+publisher.go:75: send message: {"a":2,"m":1,"sum":200,"tid":1953}
+publisher.go:78: connect publisher to rabbitMQ
+publisher.go:93: connect publisher to rabbitMQ
+init.go:248: starting channel watcher
+postpaid.go:289: 
+ [x] Timer
+consumer.go:128: got new event {"d":"861715031834345","tid":1953,"st":1}
+manager.go:32: {D:861715031834345 A:0 Tid:1953 St:1 Wid:0 Sum:0 Err:0}
+TransactionDispetcher.go:195: 
+ [x] &{Date: Status:9 ChannelMessage:0xc000076f60 TimeOut:0xc000076f00 Config:{Tid:1953 AccountId:1 AutomatId:16 Imei:861715031834345 TokenType:4 Noise:14083791 DeviceType:0 CurrensyCode:643} Payment:{Status:0 PayType:2 TokenType:4 PaymentId:0 Sum:200 CurrensyCode:643 TypeSale:0 DebitSum:0 Type:1 OrderId:d144777f-6d3e-7f34-ab67-db1902f21b66 OperationId: InvoiceId: Tid: SecretKey: KeyPayment: Service_id: TidPaymentSystem: HostPaymentSystem: SbolBankInvoiceId:be726cf0f5084dbd9e5d91dc3b4cbe5a Login:P690209812752-api Password:xG-zG-z-YZmE8,f MerchantId: GateWay:sberbank Token: UserPhone:9108303436 ReturnUrl:https://paytest.ephor.online DeepLink: SbpPoint: Language:RU Description:} Fiscal:{Config:{Id:0 Name: Type:0 Dev_interface:0 AutomatNumber:0 Login: Password: Phone: Email: Dev_addr: Dev_port:0 Ofd_addr: Ofd_port:0 Inn: Auth_public_key: Auth_private_key: Sign_private_key: Param1: Use_sn:0 Add_fiscal:0 Id_shift: Fr_disable_cash:0 Fr_disable_cashless:0 Ffd_version:0 MaxSum:0 QrFormat:1} Message: Status: Code:0 StatusCode:0 Fiscalization:0 Qr:0 FfDisableCashless:0 FfDisableCash:0 Fields:{Fp: Fn: DateFisal: Fd:0}} Point:{Address: PointName: Id:0} TaxSystem:{Type:0 TaxRate:0} Products:[]}
+postpaid.go:320: 
+ [x] Timer ok
+postpaid.go:321: Timer ok
+postpaid.go:289: 
+ [x] Timer
+consumer.go:128: got new event {"d":"861715031834345","tid":1953,"st":3,"wid":38,"sum":100}
+manager.go:32: {D:861715031834345 A:0 Tid:1953 St:3 Wid:38 Sum:100 Err:0}
+TransactionDispetcher.go:195: 
+ [x] &{Date: Status:9 ChannelMessage:0xc000076f60 TimeOut:0xc000076f00 Config:{Tid:1953 AccountId:1 AutomatId:16 Imei:861715031834345 TokenType:4 Noise:14083791 DeviceType:0 CurrensyCode:643} Payment:{Status:0 PayType:2 TokenType:4 PaymentId:0 Sum:200 CurrensyCode:643 TypeSale:0 DebitSum:0 Type:1 OrderId:d144777f-6d3e-7f34-ab67-db1902f21b66 OperationId: InvoiceId: Tid: SecretKey: KeyPayment: Service_id: TidPaymentSystem: HostPaymentSystem: SbolBankInvoiceId:be726cf0f5084dbd9e5d91dc3b4cbe5a Login:P690209812752-api Password:xG-zG-z-YZmE8,f MerchantId: GateWay:sberbank Token: UserPhone:9108303436 ReturnUrl:https://paytest.ephor.online DeepLink: SbpPoint: Language:RU Description:} Fiscal:{Config:{Id:0 Name: Type:0 Dev_interface:0 AutomatNumber:0 Login: Password: Phone: Email: Dev_addr: Dev_port:0 Ofd_addr: Ofd_port:0 Inn: Auth_public_key: Auth_private_key: Sign_private_key: Param1: Use_sn:0 Add_fiscal:0 Id_shift: Fr_disable_cash:0 Fr_disable_cashless:0 Ffd_version:0 MaxSum:0 QrFormat:1} Message: Status: Code:0 StatusCode:0 Fiscalization:0 Qr:0 FfDisableCashless:0 FfDisableCash:0 Fields:{Fp: Fn: DateFisal: Fd:0}} Point:{Address: PointName: Id:0} TaxSystem:{Type:0 TaxRate:0} Products:[]}
+postpaid.go:320: 
+ [x] Timer ok
+postpaid.go:321: Timer ok
+Store.go:134: SELECT id, automat_id, config_id, from_date, to_date FROM account1.automat_config  WHERE  to_date IS NULL  AND automat_id = $1
+postpaid.go:145: &{Id:724 Automat_id:16 Config_id:507 From_date:2022-06-01T21:00:00Z To_date:}
+postpaid.go:161: map[account_id:1 config_id:507 ware_id:38]
+postpaid.go:163: <nil>
+postpaid.go:165: not found paramentr account_id
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно"}
+http.go:71: https://securepayments.sberbank.ru//payment/rest/reverse.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=d144777f-6d3e-7f34-ab67-db1902f21b66&amount=200
+consumer.go:128: got new event {"d":"861715031834345","tid":1953,"st":4,"wid":38,"sum":100,"err":0}
+manager.go:32: {D:861715031834345 A:0 Tid:1953 St:4 Wid:38 Sum:100 Err:0}
+TransactionDispetcher.go:195: 
+ [x] <nil>
+consumer.go:130: Fail send
+http.go:73: HTTP server Shutdown completed successfully
+manager.go:66: 1
+manager.go:73: 2
+manager.go:139: shutting down
+manager.go:151: closing connection...
+http.go:28: http: Server closed
+consumer.go:136: &rabbitmq.Connection{Dsn:"amqp://device:ephor2021@188.225.18.140:5672", BackoffPolicy:map[string]int{"count":400, "time":10}, Conn:(*amqp.Connection)(0xc000148640), ServiceChannel:(*amqp.Channel)(0xc0001a4c60), Mu:sync.RWMutex{w:sync.Mutex{state:1, sema:0x0}, writerSem:0x0, readerSem:0x0, readerCount:-1073741824, readerWait:0}, ChannelPool:map[rabbitmq.ChannelPoolItemKey]*amqp.Channel{rabbitmq.ChannelPoolItemKey{Queue:"", Consumer:"", Exchange:"amq.topic", Key:"ephor.1.dev.861715031834345"}:(*amqp.Channel)(0xc000098d80), rabbitmq.ChannelPoolItemKey{Queue:"ephor.1.pay", Consumer:"Pay", Exchange:"", Key:""}:(*amqp.Channel)(0xc0001a4ea0)}, ChannelPoolMu:sync.RWMutex{w:sync.Mutex{state:0, sema:0x0}, writerSem:0x0, readerSem:0x0, readerCount:0, readerWait:0}, isClosed:true, ErrorClose:false, ErrorGroup:(*errgroup.Group)(0xc000088000), ChanCtx:(*context.emptyCtx)(0xc00002a0c0), ReconnectRabbit:(chan int)(0xc000076840)}
+init.go:99: close Channel Ok - Pay
+init.go:257: Close Channel
+init.go:99: close Channel Ok - 
+init.go:257: Close Channel
+init.go:104: close rabbitMQ connection OK
+manager.go:143: shutted down
+manager.go:75: 3
+manager.go:77: 4
+ephorsale.go:44: I'm Stopping!
+ephorsale.go:74: Load Config...
+ephorsale.go:97: Load Logger...
+ephorsale.go:106: Start SaleService
+ephorsale.go:27: Running in terminal.
+ephorsale.go:37: goadmin
+init.go:45: user=goadmin password=go2021 host=127.0.0.1 port=5432 dbname=ephortest sslmode=disable pool_max_conns=5
+init.go:47: &{ConnConfig:0xc0001279e0 BeforeConnect:<nil> AfterConnect:<nil> BeforeAcquire:<nil> AfterRelease:<nil> MaxConnLifetime:1h0m0s MaxConnLifetimeJitter:0s MaxConnIdleTime:30m0s MaxConns:5 MinConns:0 HealthCheckPeriod:1m0s LazyConnect:false createdByParseConfig:true}
+init.go:53: &{Config:{Host:127.0.0.1 Port:5432 Database:ephortest User:goadmin Password:go2021 TLSConfig:<nil> ConnectTimeout:0s DialFunc:0x7240a0 LookupFunc:0x7241a0 BuildFrontend:0x723680 RuntimeParams:map[] KerberosSrvName: KerberosSpn: Fallbacks:[] ValidateConnect:<nil> AfterConnect:<nil> OnNotice:<nil> OnNotification:<nil> createdByParseConfig:true} Logger:<nil> LogLevel:info connString:user=goadmin password=go2021 host=127.0.0.1 port=5432 dbname=ephortest sslmode=disable pool_max_conns=5 BuildStatementCache:0x83f160 PreferSimpleProtocol:false createdByParseConfig:true}
+manager.go:129: establishing connection...
+init.go:117: get Connection
+init.go:124: get Channel
+init.go:141: starting connection watcher
+http.go:42: 127.0.0.1:8040
+consumer.go:43: New Consumer
+consumer.go:163: New Subscribe
+manager.go:91: PayStart
+init.go:248: starting channel watcher
+consumer.go:116: consumer connected
+manager.go:147: &{SaleAutomatPostPaid:{cfg:0xc000001980 QueueManager:0xc000088300 FiscalM:0xc00005f460 PaymentM:0xc0001cc580 Dispetcher:0xc0000b8000}}
+Store.go:37: INSERT INTO main.transaction (token_id, token_type, account_id, automat_id, date, sum, ps_type, pay_type, qr_format, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id, noise, token_id, token_type, account_id, customer_id, automat_id, date, sum, ps_type, ps_order, ps_tid, ps_code, ps_desc, ps_invoice_id, pay_type, fn, fd, fp, f_type, f_receipt, f_desc, f_status, qr_format, f_qr, status, error
+TransactionDispetcher.go:106: map[id:1954 noise:15376978]
+TransactionDispetcher.go:114: &{Date: Status:0 ChannelMessage:0xc000076c60 TimeOut:0xc000076c00 Config:{Tid:1954 AccountId:1 AutomatId:16 Imei:861715031834345 TokenType:4 Noise:15376978 DeviceType:0 CurrensyCode:643} Payment:{Status:0 PayType:2 TokenType:4 PaymentId:0 Sum:200 CurrensyCode:643 TypeSale:0 DebitSum:0 Type:1 OrderId: OperationId: InvoiceId: Tid: SecretKey: KeyPayment: Service_id: TidPaymentSystem: HostPaymentSystem: SbolBankInvoiceId: Login:P690209812752-api Password:xG-zG-z-YZmE8,f MerchantId: GateWay:sberbank Token: UserPhone:9108303436 ReturnUrl: DeepLink: SbpPoint: Language:RU Description:} Fiscal:{Config:{Id:0 Name: Type:0 Dev_interface:0 AutomatNumber:0 Login: Password: Phone: Email: Dev_addr: Dev_port:0 Ofd_addr: Ofd_port:0 Inn: Auth_public_key: Auth_private_key: Sign_private_key: Param1: Use_sn:0 Add_fiscal:0 Id_shift: Fr_disable_cash:0 Fr_disable_cashless:0 Ffd_version:0 MaxSum:0 QrFormat:1} Message: Status: Code:0 StatusCode:0 Fiscalization:0 Qr:0 FfDisableCashless:0 FfDisableCash:0 Fields:{Fp: Fn: DateFisal: Fd:0}} Point:{Address: PointName: Id:0} TaxSystem:{Type:0 TaxRate:0} Products:[]}
+TransactionDispetcher.go:185: lock
+manager.go:182: map[message:ok tid:15376978]
+core.go:46: userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderNumber=I-1697-u&amount=200&returnUrl=https://paytest.ephor.online&description=&phone=9108303436&jsonParams={"back2app":true}
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode: ErrorMessage: OrderId:7bbbfbe4-9346-763f-b473-0a3502f21b66 FormUrl:https://securepayments.sberbank.ru/payment/merchants/sbersafe_sberid/payment_ru.html?mdOrder=7bbbfbe4-9346-763f-b473-0a3502f21b66 ExternalParams:{SbolBankInvoiceId:199d50634ee04387a7f8238f184f4454 SbolDeepLink: SbolInactive:false}}
+http.go:70: {"orderId":"7bbbfbe4-9346-763f-b473-0a3502f21b66","formUrl":"https://securepayments.sberbank.ru/payment/merchants/sbersafe_sberid/payment_ru.html?mdOrder=7bbbfbe4-9346-763f-b473-0a3502f21b66","externalParams":{"sbolInactive":"false","sbolBankInvoiceId":"199d50634ee04387a7f8238f184f4454"}}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/registerPreAuth.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderNumber=I-1697-u&amount=200&returnUrl=https://paytest.ephor.online&description=&phone=9108303436&jsonParams={"back2app":true}
+init.go:88: &{StatusCode:0 ErrorCode: ErrorMessage: OrderId:7bbbfbe4-9346-763f-b473-0a3502f21b66 FormUrl:https://securepayments.sberbank.ru/payment/merchants/sbersafe_sberid/payment_ru.html?mdOrder=7bbbfbe4-9346-763f-b473-0a3502f21b66 ExternalParams:{SbolBankInvoiceId:199d50634ee04387a7f8238f184f4454 SbolDeepLink: SbolInactive:false}}
+init.go:105: 199d50634ee04387a7f8238f184f4454
+init.go:106: 7bbbfbe4-9346-763f-b473-0a3502f21b66
+manager.go:100: map[code:2 description:Заказ принят, ожидание оплаты invoiceId:199d50634ee04387a7f8238f184f4454 message:Заказ принят, ожидание оплаты orderId:7bbbfbe4-9346-763f-b473-0a3502f21b66 status:true]
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:I-1697-u OrderStatus:0 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum: RefundedDate: PaymentWay: AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"I-1697-u","orderStatus":0,"actionCode":-100,"actionCodeDescription":"","amount":200,"currency":"643","date":1663949347869,"orderDescription":"","merchantOrderParams":[{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"199d50634ee04387a7f8238f184f4454"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"7bbbfbe4-9346-763f-b473-0a3502f21b66"}],"terminalId":"24593088","paymentAmountInfo":{"paymentState":"CREATED","approvedAmount":0,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=7bbbfbe4-9346-763f-b473-0a3502f21b66
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:I-1697-u OrderStatus:0 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum: RefundedDate: PaymentWay: AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"I-1697-u","orderStatus":0,"actionCode":-100,"actionCodeDescription":"","amount":200,"currency":"643","date":1663949347869,"orderDescription":"","merchantOrderParams":[{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"199d50634ee04387a7f8238f184f4454"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"7bbbfbe4-9346-763f-b473-0a3502f21b66"}],"terminalId":"24593088","paymentAmountInfo":{"paymentState":"CREATED","approvedAmount":0,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=7bbbfbe4-9346-763f-b473-0a3502f21b66
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:I-1697-u OrderStatus:0 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum: RefundedDate: PaymentWay: AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"I-1697-u","orderStatus":0,"actionCode":-100,"actionCodeDescription":"","amount":200,"currency":"643","date":1663949347869,"orderDescription":"","merchantOrderParams":[{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"199d50634ee04387a7f8238f184f4454"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"7bbbfbe4-9346-763f-b473-0a3502f21b66"}],"terminalId":"24593088","paymentAmountInfo":{"paymentState":"CREATED","approvedAmount":0,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=7bbbfbe4-9346-763f-b473-0a3502f21b66
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:I-1697-u OrderStatus:0 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum: RefundedDate: PaymentWay: AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"I-1697-u","orderStatus":0,"actionCode":-100,"actionCodeDescription":"","amount":200,"currency":"643","date":1663949347869,"orderDescription":"","merchantOrderParams":[{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"199d50634ee04387a7f8238f184f4454"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"7bbbfbe4-9346-763f-b473-0a3502f21b66"}],"terminalId":"24593088","paymentAmountInfo":{"paymentState":"CREATED","approvedAmount":0,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=7bbbfbe4-9346-763f-b473-0a3502f21b66
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:I-1697-u OrderStatus:0 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum: RefundedDate: PaymentWay: AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"I-1697-u","orderStatus":0,"actionCode":-100,"actionCodeDescription":"","amount":200,"currency":"643","date":1663949347869,"orderDescription":"","merchantOrderParams":[{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"199d50634ee04387a7f8238f184f4454"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"7bbbfbe4-9346-763f-b473-0a3502f21b66"}],"terminalId":"24593088","paymentAmountInfo":{"paymentState":"CREATED","approvedAmount":0,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=7bbbfbe4-9346-763f-b473-0a3502f21b66
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:I-1697-u OrderStatus:0 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum: RefundedDate: PaymentWay: AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"I-1697-u","orderStatus":0,"actionCode":-100,"actionCodeDescription":"","amount":200,"currency":"643","date":1663949347869,"orderDescription":"","merchantOrderParams":[{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"199d50634ee04387a7f8238f184f4454"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"7bbbfbe4-9346-763f-b473-0a3502f21b66"}],"terminalId":"24593088","paymentAmountInfo":{"paymentState":"CREATED","approvedAmount":0,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=7bbbfbe4-9346-763f-b473-0a3502f21b66
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:I-1697-u OrderStatus:0 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum: RefundedDate: PaymentWay: AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"I-1697-u","orderStatus":0,"actionCode":-100,"actionCodeDescription":"","amount":200,"currency":"643","date":1663949347869,"orderDescription":"","merchantOrderParams":[{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"199d50634ee04387a7f8238f184f4454"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"7bbbfbe4-9346-763f-b473-0a3502f21b66"}],"terminalId":"24593088","paymentAmountInfo":{"paymentState":"CREATED","approvedAmount":0,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=7bbbfbe4-9346-763f-b473-0a3502f21b66
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:I-1697-u OrderStatus:0 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum: RefundedDate: PaymentWay: AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"I-1697-u","orderStatus":0,"actionCode":-100,"actionCodeDescription":"","amount":200,"currency":"643","date":1663949347869,"orderDescription":"","merchantOrderParams":[{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"199d50634ee04387a7f8238f184f4454"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"7bbbfbe4-9346-763f-b473-0a3502f21b66"}],"terminalId":"24593088","paymentAmountInfo":{"paymentState":"CREATED","approvedAmount":0,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=7bbbfbe4-9346-763f-b473-0a3502f21b66
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:I-1697-u OrderStatus:0 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum: RefundedDate: PaymentWay: AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"I-1697-u","orderStatus":0,"actionCode":-100,"actionCodeDescription":"","amount":200,"currency":"643","date":1663949347869,"orderDescription":"","merchantOrderParams":[{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"199d50634ee04387a7f8238f184f4454"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"7bbbfbe4-9346-763f-b473-0a3502f21b66"}],"terminalId":"24593088","paymentAmountInfo":{"paymentState":"CREATED","approvedAmount":0,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=7bbbfbe4-9346-763f-b473-0a3502f21b66
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:I-1697-u OrderStatus:0 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum: RefundedDate: PaymentWay: AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"I-1697-u","orderStatus":0,"actionCode":-100,"actionCodeDescription":"","amount":200,"currency":"643","date":1663949347869,"orderDescription":"","merchantOrderParams":[{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"199d50634ee04387a7f8238f184f4454"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"7bbbfbe4-9346-763f-b473-0a3502f21b66"}],"terminalId":"24593088","paymentAmountInfo":{"paymentState":"CREATED","approvedAmount":0,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=7bbbfbe4-9346-763f-b473-0a3502f21b66
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:I-1697-u OrderStatus:0 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum: RefundedDate: PaymentWay: AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"I-1697-u","orderStatus":0,"actionCode":-100,"actionCodeDescription":"","amount":200,"currency":"643","date":1663949347869,"orderDescription":"","merchantOrderParams":[{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"199d50634ee04387a7f8238f184f4454"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"7bbbfbe4-9346-763f-b473-0a3502f21b66"}],"terminalId":"24593088","paymentAmountInfo":{"paymentState":"CREATED","approvedAmount":0,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=7bbbfbe4-9346-763f-b473-0a3502f21b66
+manager.go:147: &{SaleAutomatPostPaid:{cfg:0xc000001980 QueueManager:0xc000088300 FiscalM:0xc00005f460 PaymentM:0xc0001cc580 Dispetcher:0xc0000b8000}}
+Store.go:37: INSERT INTO main.transaction (token_id, token_type, account_id, automat_id, date, sum, ps_type, pay_type, qr_format, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id, noise, token_id, token_type, account_id, customer_id, automat_id, date, sum, ps_type, ps_order, ps_tid, ps_code, ps_desc, ps_invoice_id, pay_type, fn, fd, fp, f_type, f_receipt, f_desc, f_status, qr_format, f_qr, status, error
+TransactionDispetcher.go:106: map[id:1955 noise:16671340]
+TransactionDispetcher.go:114: &{Date: Status:0 ChannelMessage:0xc000076300 TimeOut:0xc000417f80 Config:{Tid:1955 AccountId:1 AutomatId:16 Imei:861715031834345 TokenType:4 Noise:16671340 DeviceType:0 CurrensyCode:643} Payment:{Status:0 PayType:2 TokenType:4 PaymentId:0 Sum:200 CurrensyCode:643 TypeSale:0 DebitSum:0 Type:1 OrderId: OperationId: InvoiceId: Tid: SecretKey: KeyPayment: Service_id: TidPaymentSystem: HostPaymentSystem: SbolBankInvoiceId: Login:P690209812752-api Password:xG-zG-z-YZmE8,f MerchantId: GateWay:sberbank Token: UserPhone:9108303436 ReturnUrl: DeepLink: SbpPoint: Language:RU Description:} Fiscal:{Config:{Id:0 Name: Type:0 Dev_interface:0 AutomatNumber:0 Login: Password: Phone: Email: Dev_addr: Dev_port:0 Ofd_addr: Ofd_port:0 Inn: Auth_public_key: Auth_private_key: Sign_private_key: Param1: Use_sn:0 Add_fiscal:0 Id_shift: Fr_disable_cash:0 Fr_disable_cashless:0 Ffd_version:0 MaxSum:0 QrFormat:1} Message: Status: Code:0 StatusCode:0 Fiscalization:0 Qr:0 FfDisableCashless:0 FfDisableCash:0 Fields:{Fp: Fn: DateFisal: Fd:0}} Point:{Address: PointName: Id:0} TaxSystem:{Type:0 TaxRate:0} Products:[]}
+TransactionDispetcher.go:185: lock
+manager.go:182: map[message:ok tid:16671340]
+core.go:46: userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderNumber=g-161016-Z&amount=200&returnUrl=https://paytest.ephor.online&description=&phone=9108303436&jsonParams={"back2app":true}
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode: ErrorMessage: OrderId:a5b1eee5-6aba-7402-8d6e-2a5102f21b66 FormUrl:https://securepayments.sberbank.ru/payment/merchants/sbersafe_sberid/payment_ru.html?mdOrder=a5b1eee5-6aba-7402-8d6e-2a5102f21b66 ExternalParams:{SbolBankInvoiceId:13c2e19e24334b5c81cf75e20436e201 SbolDeepLink: SbolInactive:false}}
+http.go:70: {"orderId":"a5b1eee5-6aba-7402-8d6e-2a5102f21b66","formUrl":"https://securepayments.sberbank.ru/payment/merchants/sbersafe_sberid/payment_ru.html?mdOrder=a5b1eee5-6aba-7402-8d6e-2a5102f21b66","externalParams":{"sbolInactive":"false","sbolBankInvoiceId":"13c2e19e24334b5c81cf75e20436e201"}}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/registerPreAuth.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderNumber=g-161016-Z&amount=200&returnUrl=https://paytest.ephor.online&description=&phone=9108303436&jsonParams={"back2app":true}
+init.go:88: &{StatusCode:0 ErrorCode: ErrorMessage: OrderId:a5b1eee5-6aba-7402-8d6e-2a5102f21b66 FormUrl:https://securepayments.sberbank.ru/payment/merchants/sbersafe_sberid/payment_ru.html?mdOrder=a5b1eee5-6aba-7402-8d6e-2a5102f21b66 ExternalParams:{SbolBankInvoiceId:13c2e19e24334b5c81cf75e20436e201 SbolDeepLink: SbolInactive:false}}
+init.go:105: 13c2e19e24334b5c81cf75e20436e201
+init.go:106: a5b1eee5-6aba-7402-8d6e-2a5102f21b66
+manager.go:100: map[code:2 description:Заказ принят, ожидание оплаты invoiceId:13c2e19e24334b5c81cf75e20436e201 message:Заказ принят, ожидание оплаты orderId:a5b1eee5-6aba-7402-8d6e-2a5102f21b66 status:true]
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:g-161016-Z OrderStatus:0 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum: RefundedDate: PaymentWay: AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"g-161016-Z","orderStatus":0,"actionCode":-100,"actionCodeDescription":"","amount":200,"currency":"643","date":1663949417011,"orderDescription":"","merchantOrderParams":[{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"13c2e19e24334b5c81cf75e20436e201"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"a5b1eee5-6aba-7402-8d6e-2a5102f21b66"}],"terminalId":"24593088","paymentAmountInfo":{"paymentState":"CREATED","approvedAmount":0,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=a5b1eee5-6aba-7402-8d6e-2a5102f21b66
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:g-161016-Z OrderStatus:0 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum: RefundedDate: PaymentWay: AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"g-161016-Z","orderStatus":0,"actionCode":-100,"actionCodeDescription":"","amount":200,"currency":"643","date":1663949417011,"orderDescription":"","merchantOrderParams":[{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"13c2e19e24334b5c81cf75e20436e201"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"a5b1eee5-6aba-7402-8d6e-2a5102f21b66"}],"terminalId":"24593088","paymentAmountInfo":{"paymentState":"CREATED","approvedAmount":0,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=a5b1eee5-6aba-7402-8d6e-2a5102f21b66
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:g-161016-Z OrderStatus:0 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum: RefundedDate: PaymentWay: AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"g-161016-Z","orderStatus":0,"actionCode":-100,"actionCodeDescription":"","amount":200,"currency":"643","date":1663949417011,"orderDescription":"","merchantOrderParams":[{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"13c2e19e24334b5c81cf75e20436e201"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"a5b1eee5-6aba-7402-8d6e-2a5102f21b66"}],"terminalId":"24593088","paymentAmountInfo":{"paymentState":"CREATED","approvedAmount":0,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=a5b1eee5-6aba-7402-8d6e-2a5102f21b66
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:g-161016-Z OrderStatus:0 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum: RefundedDate: PaymentWay: AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"g-161016-Z","orderStatus":0,"actionCode":-100,"actionCodeDescription":"","amount":200,"currency":"643","date":1663949417011,"orderDescription":"","merchantOrderParams":[{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"13c2e19e24334b5c81cf75e20436e201"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"a5b1eee5-6aba-7402-8d6e-2a5102f21b66"}],"terminalId":"24593088","paymentAmountInfo":{"paymentState":"CREATED","approvedAmount":0,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=a5b1eee5-6aba-7402-8d6e-2a5102f21b66
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно OrderNumber:g-161016-Z OrderStatus:1 ActionCode:0 ActionCodeDescription: Amount:200 Currency:0 Date: DepositedDate:0 OrderDescription: Ip: AuthRefNum:226687138352 RefundedDate: PaymentWay:SBRF_SBOL AvsCode:}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно","orderNumber":"g-161016-Z","orderStatus":1,"actionCode":0,"actionCodeDescription":"","amount":200,"currency":"643","date":1663949417011,"orderDescription":"","merchantOrderParams":[{"name":"externalPaymentSource","value":"CARD"},{"name":"back2app","value":"true"}],"transactionAttributes":[{"name":"externalPaymentSource","value":"CARD"},{"name":"sbolOperationType","value":"Web2App"},{"name":"sbolDetailedOperationType","value":"BACK2APP"},{"name":"sbolReRegisterOperationCount","value":"1"},{"name":"merchantIp","value":"188.225.18.140"},{"name":"sbolDetailedChannel","value":"WEB"},{"name":"sbolMobilePhone","value":"79108303436"},{"name":"sbolBankInvoiceId","value":"13c2e19e24334b5c81cf75e20436e201"},{"name":"sbolChannel","value":"web"}],"attributes":[{"name":"mdOrder","value":"a5b1eee5-6aba-7402-8d6e-2a5102f21b66"}],"cardAuthInfo":{"maskedPan":"533669XXXXXX6698","expiration":"202303","approvalCode":"207537","paymentSystem":"MASTERCARD","productCategory":"CREDIT","pan":"533669XXXXXX6698"},"authDateTime":1663949439666,"terminalId":"24593090","authRefNum":"226687138352","paymentAmountInfo":{"paymentState":"APPROVED","approvedAmount":200,"depositedAmount":0,"refundedAmount":0,"feeAmount":0,"totalAmount":200},"bankInfo":{"bankCountryCode":"UNKNOWN","bankCountryName":"<Неизвестно>"},"payerData":{"phone":"9108303436"},"chargeback":false,"paymentWay":"SBRF_SBOL"}
+http.go:71: https://securepayments.sberbank.ru/payment/rest/getOrderStatusExtended.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=a5b1eee5-6aba-7402-8d6e-2a5102f21b66
+publisher.go:75: send message: {"a":2,"m":1,"sum":200,"tid":1955}
+publisher.go:78: connect publisher to rabbitMQ
+publisher.go:93: connect publisher to rabbitMQ
+postpaid.go:289: 
+ [x] Timer
+init.go:248: starting channel watcher
+consumer.go:128: got new event {"d":"861715031834345","tid":1955,"st":1}
+manager.go:32: {D:861715031834345 A:0 Tid:1955 St:1 Wid:0 Sum:0 Err:0}
+TransactionDispetcher.go:195: 
+ [x] &{Date: Status:9 ChannelMessage:0xc000076300 TimeOut:0xc000417f80 Config:{Tid:1955 AccountId:1 AutomatId:16 Imei:861715031834345 TokenType:4 Noise:16671340 DeviceType:0 CurrensyCode:643} Payment:{Status:0 PayType:2 TokenType:4 PaymentId:0 Sum:200 CurrensyCode:643 TypeSale:0 DebitSum:0 Type:1 OrderId:a5b1eee5-6aba-7402-8d6e-2a5102f21b66 OperationId: InvoiceId: Tid: SecretKey: KeyPayment: Service_id: TidPaymentSystem: HostPaymentSystem: SbolBankInvoiceId:13c2e19e24334b5c81cf75e20436e201 Login:P690209812752-api Password:xG-zG-z-YZmE8,f MerchantId: GateWay:sberbank Token: UserPhone:9108303436 ReturnUrl:https://paytest.ephor.online DeepLink: SbpPoint: Language:RU Description:} Fiscal:{Config:{Id:0 Name: Type:0 Dev_interface:0 AutomatNumber:0 Login: Password: Phone: Email: Dev_addr: Dev_port:0 Ofd_addr: Ofd_port:0 Inn: Auth_public_key: Auth_private_key: Sign_private_key: Param1: Use_sn:0 Add_fiscal:0 Id_shift: Fr_disable_cash:0 Fr_disable_cashless:0 Ffd_version:0 MaxSum:0 QrFormat:1} Message: Status: Code:0 StatusCode:0 Fiscalization:0 Qr:0 FfDisableCashless:0 FfDisableCash:0 Fields:{Fp: Fn: DateFisal: Fd:0}} Point:{Address: PointName: Id:0} TaxSystem:{Type:0 TaxRate:0} Products:[]}
+postpaid.go:320: 
+ [x] Timer ok
+postpaid.go:321: Timer ok
+postpaid.go:289: 
+ [x] Timer
+consumer.go:128: got new event {"d":"861715031834345","tid":1955,"st":3,"wid":38,"sum":100}
+manager.go:32: {D:861715031834345 A:0 Tid:1955 St:3 Wid:38 Sum:100 Err:0}
+TransactionDispetcher.go:195: 
+ [x] &{Date: Status:9 ChannelMessage:0xc000076300 TimeOut:0xc000417f80 Config:{Tid:1955 AccountId:1 AutomatId:16 Imei:861715031834345 TokenType:4 Noise:16671340 DeviceType:0 CurrensyCode:643} Payment:{Status:0 PayType:2 TokenType:4 PaymentId:0 Sum:200 CurrensyCode:643 TypeSale:0 DebitSum:0 Type:1 OrderId:a5b1eee5-6aba-7402-8d6e-2a5102f21b66 OperationId: InvoiceId: Tid: SecretKey: KeyPayment: Service_id: TidPaymentSystem: HostPaymentSystem: SbolBankInvoiceId:13c2e19e24334b5c81cf75e20436e201 Login:P690209812752-api Password:xG-zG-z-YZmE8,f MerchantId: GateWay:sberbank Token: UserPhone:9108303436 ReturnUrl:https://paytest.ephor.online DeepLink: SbpPoint: Language:RU Description:} Fiscal:{Config:{Id:0 Name: Type:0 Dev_interface:0 AutomatNumber:0 Login: Password: Phone: Email: Dev_addr: Dev_port:0 Ofd_addr: Ofd_port:0 Inn: Auth_public_key: Auth_private_key: Sign_private_key: Param1: Use_sn:0 Add_fiscal:0 Id_shift: Fr_disable_cash:0 Fr_disable_cashless:0 Ffd_version:0 MaxSum:0 QrFormat:1} Message: Status: Code:0 StatusCode:0 Fiscalization:0 Qr:0 FfDisableCashless:0 FfDisableCash:0 Fields:{Fp: Fn: DateFisal: Fd:0}} Point:{Address: PointName: Id:0} TaxSystem:{Type:0 TaxRate:0} Products:[]}
+postpaid.go:320: 
+ [x] Timer ok
+postpaid.go:321: Timer ok
+Store.go:134: SELECT id, automat_id, config_id, from_date, to_date FROM account1.automat_config  WHERE  to_date IS NULL  AND automat_id = $1
+postpaid.go:145: &{Id:724 Automat_id:16 Config_id:507 From_date:2022-06-01T21:00:00Z To_date:}
+postpaid.go:161: map[account_id:1 config_id:507 ware_id:38]
+Store.go:134: SELECT id, config_id, select_id, cid, ware_id, name, tax_rate, type, qt_recom, qt_max, recipe_id FROM account1.config_product  WHERE  ware_id = $1  AND config_id = $2
+Model.go:94: number of field descriptions must equal number of destinations, got 11 and 12
+postpaid.go:163: &{Id:0 Config_id:0 Select_id: Cid:0 Ware_id:0 Name: Tax_rate:0 Type:0 Qt_recom:0 Qt_max:0 Recipe_id:0}
+postpaid.go:165: number of field descriptions must equal number of destinations, got 11 and 12
+http.go:43: POST
+http.go:69: &{StatusCode:0 ErrorCode:0 ErrorMessage:Успешно}
+http.go:70: {"errorCode":"0","errorMessage":"Успешно"}
+http.go:71: https://securepayments.sberbank.ru//payment/rest/reverse.do?userName=P690209812752-api&password=xG-zG-z-YZmE8,f&orderId=a5b1eee5-6aba-7402-8d6e-2a5102f21b66&amount=200
+consumer.go:128: got new event {"d":"861715031834345","tid":1955,"st":4,"wid":38,"sum":100,"err":0}
+manager.go:32: {D:861715031834345 A:0 Tid:1955 St:4 Wid:38 Sum:100 Err:0}
+TransactionDispetcher.go:195: 
+ [x] <nil>
+consumer.go:130: Fail send
+http.go:73: HTTP server Shutdown completed successfully
+manager.go:66: 1
+manager.go:73: 2
+http.go:28: http: Server closed
+manager.go:139: shutting down
+manager.go:151: closing connection...
+consumer.go:136: &rabbitmq.Connection{Dsn:"amqp://device:ephor2021@188.225.18.140:5672", BackoffPolicy:map[string]int{"count":400, "time":10}, Conn:(*amqp.Connection)(0xc000148640), ServiceChannel:(*amqp.Channel)(0xc0000987e0), Mu:sync.RWMutex{w:sync.Mutex{state:1, sema:0x0}, writerSem:0x0, readerSem:0x0, readerCount:-1073741824, readerWait:0}, ChannelPool:map[rabbitmq.ChannelPoolItemKey]*amqp.Channel{rabbitmq.ChannelPoolItemKey{Queue:"", Consumer:"", Exchange:"amq.topic", Key:"ephor.1.dev.861715031834345"}:(*amqp.Channel)(0xc00042e480), rabbitmq.ChannelPoolItemKey{Queue:"ephor.1.pay", Consumer:"Pay", Exchange:"", Key:""}:(*amqp.Channel)(0xc0001bc900)}, ChannelPoolMu:sync.RWMutex{w:sync.Mutex{state:0, sema:0x0}, writerSem:0x0, readerSem:0x0, readerCount:0, readerWait:0}, isClosed:true, ErrorClose:false, ErrorGroup:(*errgroup.Group)(0xc000088000), ChanCtx:(*context.emptyCtx)(0xc00002a0c0), ReconnectRabbit:(chan int)(0xc00008a300)}
+init.go:99: close Channel Ok - Pay
+init.go:257: Close Channel
+init.go:99: close Channel Ok - 
+init.go:257: Close Channel
+init.go:104: close rabbitMQ connection OK
+manager.go:143: shutted down
+manager.go:75: 3
+manager.go:77: 4
+ephorsale.go:44: I'm Stopping!
