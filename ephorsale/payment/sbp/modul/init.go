@@ -1,51 +1,56 @@
 package modul
 
 import (
-	config "ephorservices/config"
-	"ephorservices/ephorsale/payment/interfacePayment"
-	transaction "ephorservices/ephorsale/transaction"
+	"ephorservices/ephorsale/payment/interface/payment"
+	"ephorservices/ephorsale/payment/sbp/modul/core"
+	response "ephorservices/ephorsale/payment/sbp/modul/response"
+	"ephorservices/ephorsale/payment/sbp/modul/transport"
+	transaction "ephorservices/ephorsale/transaction/transaction_struct"
+	logger "ephorservices/pkg/logger"
 	"fmt"
-	"log"
 	"time"
 )
 
 type SbpModul struct {
-	Status int
-	Name   string
-	Core   *Core
-	Http   *Http
-	cfg    *config.Config
+	State int
+	Name  string
+	Core  *core.Core
+	Http  *transport.Http
+	Debug bool
 }
 
 type NewSbpModul struct {
 	SbpModul
 }
 
-func (sm NewSbpModul) New(conf *config.Config) interfacePayment.Payment /* тип interfaceBank.Bank*/ {
-	Core := InitCore(conf)
-	Http := InitHttp(conf)
+func (sm NewSbpModul) New(debug bool) payment.Payment /* тип interfaceBank.Bank*/ {
+	Core := core.InitCore()
+	Http := transport.InitHttp(debug)
 	return &NewSbpModul{
 		SbpModul: SbpModul{
-			Name:   "SbpModul",
-			Status: 0,
-			Core:   Core,
-			Http:   Http,
-			cfg:    conf,
+			Name:  "SbpModul",
+			State: 0,
+			Core:  Core,
+			Http:  Http,
+			Debug: debug,
 		},
 	}
 }
 
-func (sm *SbpModul) HoldMoney(tran *transaction.Transaction) map[string]interface{} {
+func (sm *SbpModul) GetName() string {
+	return sm.Name
+}
+
+func (sm *SbpModul) Hold(tran *transaction.Transaction) map[string]interface{} {
 	ResponsePaymentSystem := make(map[string]interface{})
-	products := tran.Products
-	url, data, err := sm.Core.makeRequestGetQrCode(tran.Payment.SbpPoint, products)
+	url, data, err := sm.Core.MakeRequestGetQrCode(tran.Payment.SbpPoint, tran)
 	if err != nil {
 		return sm.setStatusResponseErr(fmt.Sprintf("%v", err), fmt.Sprintf("%v", err))
 	}
 	header := make(map[string]interface{})
-	header["Host"] = HOST
+	header["Host"] = core.HOST
 	header["Authorization"] = "Bearer " + tran.Payment.Login
-	Response := &ResponseGetQR{}
+	Response := &response.ResponseGetQR{}
 	funSend := sm.Http.Send(sm.Http.Call, "POST", url, header, data, Response, 3, 2)
 	code, errResp := funSend("POST", url, header, data, Response)
 	if errResp != nil {
@@ -62,12 +67,12 @@ func (sm *SbpModul) HoldMoney(tran *transaction.Transaction) map[string]interfac
 	ResponsePaymentSystem["message"] = "Заказ принят, ожидание оплаты"
 	ResponsePaymentSystem["description"] = "Заказ принят, ожидание оплаты"
 	ResponsePaymentSystem["code"] = transaction.TransactionState_MoneyDebitWait
-	log.Println("Заказ принят")
+	logger.Log.Info("Заказ принят")
 	return ResponsePaymentSystem
 }
 
-func (sm *SbpModul) checkStatusQr(header map[string]interface{}, url string, tran *transaction.Transaction) (*ResponseGetStatus, error) {
-	Response := &ResponseGetStatus{}
+func (sm *SbpModul) checkStatusQr(header map[string]interface{}, url string, tran *transaction.Transaction) (*response.ResponseGetStatus, error) {
+	Response := &response.ResponseGetStatus{}
 	funSend := sm.Http.Send(sm.Http.Call, "GET", url, header, nil, Response, 3, 2)
 	code, errResp := funSend("GET", url, header, nil, Response)
 	if errResp != nil {
@@ -84,10 +89,11 @@ func (sm *SbpModul) setStatusResponseErr(message, description string) map[string
 	ResponsePaymentSystem["message"] = message
 	ResponsePaymentSystem["description"] = description
 	ResponsePaymentSystem["status"] = transaction.TransactionState_Error
+	logger.Log.Errorf("%+v", ResponsePaymentSystem)
 	return ResponsePaymentSystem
 }
 
-func (sm *SbpModul) GetStatusHoldMoney(tran *transaction.Transaction) map[string]interface{} {
+func (sm *SbpModul) Status(tran *transaction.Transaction) map[string]interface{} {
 	ResponsePaymentSystem := make(map[string]interface{})
 	ResponsePaymentSystem["status"] = true
 	ResponsePaymentSystem["message"] = "Оплата подтверждена"
@@ -96,15 +102,15 @@ func (sm *SbpModul) GetStatusHoldMoney(tran *transaction.Transaction) map[string
 	return ResponsePaymentSystem
 }
 
-func (sm *SbpModul) DebitHoldMoney(tran *transaction.Transaction) map[string]interface{} {
+func (sm *SbpModul) Debit(tran *transaction.Transaction) map[string]interface{} {
 	ResponsePaymentSystem := make(map[string]interface{})
-	timeout := time.NewTimer(5 * time.Minute)
+	timeout := time.NewTimer(2 * time.Minute)
 	header := make(map[string]interface{})
-	header["Host"] = HOST
+	header["Host"] = core.HOST
 	header["Authorization"] = "Bearer " + tran.Payment.Login
 	params := make(map[string]interface{})
 	params["qrId"] = tran.Payment.OrderId
-	url, _ := sm.Core.makeRequestGetStatusQrCode(params)
+	url, _ := sm.Core.MakeRequestGetStatusQrCode(params)
 	for {
 		select {
 		case <-timeout.C:
@@ -117,7 +123,7 @@ func (sm *SbpModul) DebitHoldMoney(tran *transaction.Transaction) map[string]int
 			}
 		case <-time.After(5 * time.Second):
 			{
-				response, err := sm.checkStatusQr(header, url, tran)
+				Response, err := sm.checkStatusQr(header, url, tran)
 				if err != nil {
 					ResponsePaymentSystem["status"] = false
 					ResponsePaymentSystem["message"] = fmt.Sprintf("%v", err)
@@ -125,7 +131,7 @@ func (sm *SbpModul) DebitHoldMoney(tran *transaction.Transaction) map[string]int
 					ResponsePaymentSystem["code"] = transaction.TransactionState_Error
 					return ResponsePaymentSystem
 				}
-				switch response.Status {
+				switch Response.Status {
 				case "NotStarted":
 					return sm.setStatusResponseErr("Операции по QR коду не существует", "Операции по QR коду не существует")
 				case "Rejected":
@@ -136,7 +142,7 @@ func (sm *SbpModul) DebitHoldMoney(tran *transaction.Transaction) map[string]int
 					ResponsePaymentSystem["status"] = true
 					ResponsePaymentSystem["message"] = "Платёж подтверждён"
 					ResponsePaymentSystem["description"] = "Платёж подтверждён"
-					tran.Payment.OperationId = response.OperationId
+					tran.Payment.OperationId = Response.OperationId
 					ResponsePaymentSystem["code"] = transaction.TransactionState_MoneyDebitOk
 					return ResponsePaymentSystem
 				}
@@ -145,7 +151,7 @@ func (sm *SbpModul) DebitHoldMoney(tran *transaction.Transaction) map[string]int
 	}
 }
 
-func (sm *SbpModul) ReturnMoney(tran *transaction.Transaction) map[string]interface{} {
+func (sm *SbpModul) Return(tran *transaction.Transaction) map[string]interface{} {
 	ResponsePaymentSystem := make(map[string]interface{})
 	operationId := tran.Payment.OperationId
 	if len(operationId) < 1 {
@@ -157,14 +163,14 @@ func (sm *SbpModul) ReturnMoney(tran *transaction.Transaction) map[string]interf
 	params := make(map[string]interface{})
 	params["sbpOperId"] = operationId
 	params["type"] = "full"
-	url, data, err := sm.Core.makeRequestReturnMoney(params)
+	url, data, err := sm.Core.MakeRequestReturnMoney(params)
 	if err != nil {
 		return sm.setStatusResponseErr(fmt.Sprintf("%v", err), fmt.Sprintf("%v", err))
 	}
 	header := make(map[string]interface{})
-	header["Host"] = HOST
+	header["Host"] = core.HOST
 	header["Authorization"] = "Bearer " + tran.Payment.Login
-	Response := &ResponseReturnQr{}
+	Response := &response.ResponseReturnQr{}
 	funSend := sm.Http.Send(sm.Http.Call, "POST", url, header, data, Response, 3, 2)
 	code, errResp := funSend("POST", url, header, data, Response)
 	if errResp != nil {

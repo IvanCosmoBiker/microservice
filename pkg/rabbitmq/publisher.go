@@ -1,12 +1,13 @@
 package rabbitmq
 
 import (
+	"amqp"
 	"context"
 	"encoding/json"
-	"sync"
 	"log"
+	"sync"
+
 	"github.com/pkg/errors"
-	"amqp"
 )
 
 //go:generate mockgen --source=./publisher.go -destination=./publisher_mocks_test.go -package=rabbitmqpub_test
@@ -17,12 +18,12 @@ type ConnectorPublisher interface {
 }
 
 type ConfigPublisher struct {
-	ExchangeName,RoutingKey string
+	ExchangeName string
 }
 
 // Publisher is a RabbitPublisher
 type Publisher struct {
-	config     	ConfigPublisher
+	config      ConfigPublisher
 	conn        ConnectorPublisher
 	isConnected bool
 	name        string
@@ -32,17 +33,16 @@ type Publisher struct {
 	badMessages func(ctx context.Context) error
 }
 
-func NewPublisher(ctx context.Context,name,exchangeName,routingKey string, ch ConnectorPublisher) (*Publisher, error) {
+func NewPublisher(ctx context.Context, name, exchangeName string, ch ConnectorPublisher) (*Publisher, error) {
 	if len(exchangeName) <= 0 {
 		exchangeName = "amq.topic"
 	}
 	enity := &Publisher{
 		config: ConfigPublisher{
 			ExchangeName: exchangeName,
-			RoutingKey: routingKey,
 		},
-		conn:           ch,
-		name:           name,
+		conn: ch,
+		name: name,
 	}
 	return enity, nil
 }
@@ -66,40 +66,45 @@ func (p *Publisher) connect(_ context.Context) error {
 }
 
 // SendMessage publish message to exchange
-func (p *Publisher) SendMessage(ctx context.Context, message interface{}) error {
+func (p *Publisher) SendMessage(ctx context.Context, RoutingKey string, message interface{}) error {
 	body, err := json.Marshal(message)
 	if err != nil {
 		return errors.Wrap(err, "marshal message")
 	}
 	ampqMsg := buildMessage(body)
 	log.Printf("send message: %s", string(body))
+	log.Printf("%v", p.isConnected)
 	if !p.isConnected {
 		if err := p.connect(ctx); err != nil {
+			log.Printf("%v", err)
 			log.Println("connect publisher to rabbitMQ")
 		}
 	}
 	// We try to send message twice. Between attempts we try to reconnect.
-	if err := p.sendMessage(ctx, ampqMsg); err != nil {
-		if errRetryPub := p.sendMessage(ctx, ampqMsg); err != nil {
+	if err := p.sendMessage(ctx, RoutingKey, ampqMsg); err != nil {
+		if errRetryPub := p.sendMessage(ctx, RoutingKey, ampqMsg); err != nil {
 			return errors.Wrap(errRetryPub, "retry publish a message")
 		}
 	}
+	log.Printf("%s", RoutingKey)
 	return nil
 }
 
-func (p *Publisher) sendMessage(ctx context.Context, ampqMsg *amqp.Publishing) error {
+func (p *Publisher) sendMessage(ctx context.Context, RoutingKey string, ampqMsg *amqp.Publishing) error {
 	if !p.isConnected {
 		if err := p.connect(ctx); err != nil {
 			log.Println("connect publisher to rabbitMQ")
 		}
 	}
+	log.Printf("%s", RoutingKey)
 	if err := p.conn.Publish(
 		p.config.ExchangeName,
-		p.config.RoutingKey,
+		RoutingKey,
 		false,
 		false,
 		*ampqMsg,
 	); err != nil {
+		log.Printf("%v", err)
 		p.muConn.Lock()
 		p.isConnected = false
 		p.muConn.Unlock()

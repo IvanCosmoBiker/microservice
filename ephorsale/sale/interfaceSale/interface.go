@@ -1,8 +1,7 @@
 package interfaceSale
 
 import (
-	transaction "ephorservices/ephorsale/transaction"
-	"ephorservices/ephorsale/payment/interfacePayment"
+	transaction "ephorservices/ephorsale/transaction/transaction_struct"
 )
 
 const (
@@ -21,10 +20,12 @@ const (
 	TypeCooler      uint8 = 7
 )
 
+type FiscalFunc func(tran *transaction.Transaction)
 type Sale interface {
-	Start(tran *transaction.Transaction)
-	Payment(tran *transaction.Transaction) (map[string]interface{},interfacePayment.Payment)
-	SendMassage(tran *transaction.Transaction,paymenySystem interfacePayment.Payment) map[string]interface{}
-	WaitMassage(tran *transaction.Transaction,paymenySystem interfacePayment.Payment) map[string]interface{}
+	SetFiscalisation(function FiscalFunc)
+	Sale(tran *transaction.Transaction) map[string]interface{}
+	Payment(tran *transaction.Transaction) map[string]interface{}
+	SendMassage(tran *transaction.Transaction) map[string]interface{}
+	WaitMassage(tran *transaction.Transaction) map[string]interface{}
 	Fiscal(tran *transaction.Transaction) map[string]interface{}
 }

@@ -1,9 +1,11 @@
 package v1
 
 import (
-	config "ephorservices/config"
+	"bytes"
+	transactionDispetcher "ephorservices/ephorsale/transaction"
+	logger "ephorservices/pkg/logger"
 	"fmt"
-	"log"
+	"io/ioutil"
 	"net/http"
 	"runtime"
 	"time"
@@ -13,33 +15,24 @@ import (
 )
 
 type ServerHttp struct {
-	RouterHttp *mux.Router
-	Server     *http.Server
+	RouterHttp      *mux.Router
+	Server          *http.Server
+	Dispetcher      *transactionDispetcher.TransactionDispetcher
+	MiddleWareFuncs []mux.MiddlewareFunc
 }
 
 func (server *ServerHttp) Init(url, port string) {
 	server.InitRouter()
 	server.InitServer(url, port)
-	return
-}
-
-func (server *ServerHttp) StartListener() {
-	if err := server.Server.ListenAndServe(); err != nil {
-		log.Println(err)
-		runtime.Goexit()
-	}
-	log.Println("Start listeners Server")
-	return
+	server.InitMiddleWareFunc()
 }
 
 func (server *ServerHttp) InitRouter() {
 	server.RouterHttp = mux.NewRouter()
-	return
 }
 
 func (server *ServerHttp) InitServer(url, port string) {
 	Address := fmt.Sprintf("%s:%s", url, port)
-	log.Println(Address)
 	s := &http.Server{
 		Addr:         Address,
 		Handler:      server.RouterHttp,
@@ -47,19 +40,37 @@ func (server *ServerHttp) InitServer(url, port string) {
 		WriteTimeout: 60 * time.Second,
 	}
 	server.Server = s
-	return
 }
 
-func (server *ServerHttp) SetHandlerListener(address string, handler func(w http.ResponseWriter, req *http.Request)) *mux.Route {
+func (server *ServerHttp) InitMiddleWareFunc() {
+	server.MiddleWareFuncs = make([]mux.MiddlewareFunc, 0, 4)
+	server.MiddleWareFuncs = append(server.MiddleWareFuncs, handlers.RecoveryHandler(handlers.PrintRecoveryStack(true)))
+}
+
+func (server *ServerHttp) AddMiddleWareFunc(middleware ...mux.MiddlewareFunc) {
+	server.MiddleWareFuncs = append(server.MiddleWareFuncs, middleware...)
+}
+
+func (server *ServerHttp) SetHandlerListener(address string, handler func(w http.ResponseWriter, req *http.Request), method ...string) *mux.Route {
 	router := server.RouterHttp.HandleFunc(address, handler)
+	router.Methods(method...)
 	return router
 }
+
 func (server *ServerHttp) SetMiddleWare() {
-	server.RouterHttp.Use(func(h http.Handler) http.Handler {
-		return handlers.LoggingHandler(log.Writer(), h)
-	})
-	server.RouterHttp.Use(handlers.RecoveryHandler(handlers.PrintRecoveryStack(true)))
-	return
+	server.RouterHttp.Use(server.MiddleWareFuncs...)
+}
+
+func (server *ServerHttp) SetBody(r *http.Request, data []byte) {
+	r.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+}
+
+func (server *ServerHttp) StartListener() {
+	if err := server.Server.ListenAndServe(); err != nil {
+		logger.Log.Error(err.Error())
+		runtime.Goexit()
+	}
+	logger.Log.Info("Start listeners Server")
 }
 
 /*
@@ -67,16 +78,14 @@ func (server *ServerHttp) SetMiddleWare() {
 */
 func (server *ServerHttp) CloseListener() {
 	if err := server.Server.Close(); err != nil {
-		// Error from closing listeners, or context timeout:
-		log.Printf("HTTP server Shutdown: %v", err)
+		logger.Log.Info(fmt.Sprintf("HTTP server Shutdown: %v", err))
 	} else {
-		log.Print("HTTP server Shutdown completed successfully")
+		logger.Log.Info("HTTP server Shutdown completed successfully")
 	}
-	return
 }
 
-func Init(conf *config.Config) *ServerHttp {
+func Init(addres, port string) *ServerHttp {
 	httpServer := &ServerHttp{}
-	httpServer.Init(conf.Services.Http.Address, conf.Services.Http.Port)
+	httpServer.Init(addres, port)
 	return httpServer
 }

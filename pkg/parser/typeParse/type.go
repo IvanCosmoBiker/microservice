@@ -32,6 +32,8 @@ func ParseTypeInFloat64(parametr interface{}) float64 {
 		return float64(parametr.(uint64))
 	case float32:
 		return float64(parametr.(float32))
+	case float64:
+		return parametr.(float64)
 	}
 	return defaultType
 }
@@ -89,6 +91,102 @@ func ParseTypeInterfaceToInt(parametr interface{}) int {
 		return int(math.Round(parametr.(float64)))
 	case int:
 		return parametr.(int)
+	}
+	return defaultType
+}
+
+func ParseTypeInterfaceToInt64(parametr interface{}) int64 {
+	var defaultType int64
+	switch parametr.(type) {
+	case string:
+		value, _ := strconv.Atoi(parametr.(string))
+		return int64(value)
+	case int8:
+		return int64(parametr.(int8))
+	case int16:
+		return int64(parametr.(int16))
+	case int32:
+		return int64(parametr.(int32))
+	case int64:
+		return int64(parametr.(int64))
+	case uint8:
+		return int64(parametr.(uint8))
+	case uint16:
+		return int64(parametr.(uint16))
+	case uint32:
+		return int64(parametr.(uint32))
+	case uint64:
+		return int64(parametr.(uint64))
+	case float32:
+		return int64(math.Round(float64(parametr.(float32))))
+	case float64:
+		return int64(math.Round(parametr.(float64)))
+	case int:
+		return int64(parametr.(int))
+	}
+	return defaultType
+}
+
+func ParseTypeInterfaceToUint8(parametr interface{}) uint8 {
+	var defaultType uint8
+	switch parametr.(type) {
+	case string:
+		value, _ := strconv.Atoi(parametr.(string))
+		return uint8(value)
+	case int8:
+		return uint8(parametr.(int8))
+	case int16:
+		return uint8(parametr.(int16))
+	case int32:
+		return uint8(parametr.(int32))
+	case int64:
+		return uint8(parametr.(int64))
+	case uint8:
+		return uint8(parametr.(uint8))
+	case uint16:
+		return uint8(parametr.(uint16))
+	case uint32:
+		return uint8(parametr.(uint32))
+	case uint64:
+		return uint8(parametr.(uint64))
+	case float32:
+		return uint8(math.Round(float64(parametr.(float32))))
+	case float64:
+		return uint8(math.Round(parametr.(float64)))
+	case int:
+		return uint8(parametr.(int))
+	}
+	return defaultType
+}
+
+func ParseTypeInterfaceToInt32(parametr interface{}) int32 {
+	var defaultType int32
+	switch parametr.(type) {
+	case string:
+		value, _ := strconv.Atoi(parametr.(string))
+		return int32(value)
+	case int8:
+		return int32(parametr.(int8))
+	case int16:
+		return int32(parametr.(int16))
+	case int32:
+		return int32(parametr.(int32))
+	case int64:
+		return int32(parametr.(int64))
+	case uint8:
+		return int32(parametr.(uint8))
+	case uint16:
+		return int32(parametr.(uint16))
+	case uint32:
+		return int32(parametr.(uint32))
+	case uint64:
+		return int32(parametr.(uint64))
+	case float32:
+		return int32(math.Round(float64(parametr.(float32))))
+	case float64:
+		return int32(math.Round(parametr.(float64)))
+	case int:
+		return int32(parametr.(int))
 	}
 	return defaultType
 }

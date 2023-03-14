@@ -1,338 +1,340 @@
 package automatpostpaid
 
 import (
-	"encoding/json"
-	config "ephorservices/config"
-	"ephorservices/ephorsale/fiscal"
-	"ephorservices/ephorsale/payment"
-	"ephorservices/ephorsale/payment/interfacePayment"
+	payment "ephorservices/ephorsale/payment"
 	"ephorservices/ephorsale/sale/interfaceSale"
-	responseQueueManager "ephorservices/ephorsale/sale/responseQueueManager"
-	transaction "ephorservices/ephorsale/transaction"
+	transaction_dispetcher "ephorservices/ephorsale/transaction"
+	transaction "ephorservices/ephorsale/transaction/transaction_struct"
+	transport_manager "ephorservices/ephorsale/transport"
+	logger "ephorservices/pkg/logger"
 	parserTypes "ephorservices/pkg/parser/typeParse"
-	rabbit "ephorservices/pkg/rabbitmq"
 	"fmt"
-	"log"
-	"runtime"
-	"time"
 )
 
 type SaleAutomatPostPaid struct {
-	cfg          *config.Config
-	QueueManager *rabbit.Manager
-	FiscalM      *fiscal.FiscalManager
-	PaymentM     *payment.PaymentManager
-	Dispetcher   *transaction.TransactionDispetcher
+	Debug              bool
+	KeyReplay          int
+	ExecuteTimeSeconds int
+	Fiscalization      interfaceSale.FiscalFunc
 }
 
 type NewSaleAutomatPostPaid struct {
 	SaleAutomatPostPaid
 }
 
-func (newA *NewSaleAutomatPostPaid) New(conf *config.Config, rabbitMq *rabbit.Manager, fiscalM *fiscal.FiscalManager, paymentM *payment.PaymentManager, dispether *transaction.TransactionDispetcher) interfaceSale.Sale {
+func (newA *NewSaleAutomatPostPaid) New(executeTimeSeconds int, debug bool) interfaceSale.Sale {
 	return &NewSaleAutomatPostPaid{
 		SaleAutomatPostPaid: SaleAutomatPostPaid{
-			cfg:          conf,
-			QueueManager: rabbitMq,
-			FiscalM:      fiscalM,
-			PaymentM:     paymentM,
-			Dispetcher:   dispether,
+			ExecuteTimeSeconds: executeTimeSeconds,
+			Debug:              debug,
 		},
 	}
 }
 
-func (sapp *SaleAutomatPostPaid) Start(tran *transaction.Transaction) {
-	resultDb := make(map[string]interface{})
+func (sapp *SaleAutomatPostPaid) SetFiscalisation(function interfaceSale.FiscalFunc) {
+	sapp.Fiscalization = function
+}
+
+func (sapp *SaleAutomatPostPaid) Sale(tran *transaction.Transaction) (result map[string]interface{}) {
+	defer sapp.returnRoutine(&result, tran.Config.Tid)
 	if tran.Payment.Sum == 0 {
-		resultDb["id"] = tran.Config.Tid
-		resultDb["error"] = "Не найдены товары для продолжения оплаты"
-		resultDb["status"] = transaction.TransactionState_Error
-		sapp.Dispetcher.StoreTransaction.SetByParams(resultDb)
-		sapp.Dispetcher.RemoveTransaction(tran.Config.Tid)
-		sapp.returnRoutine()
+		result["id"] = tran.Config.Tid
+		result["error"] = "Не найдены товары для продолжения оплаты"
+		result["status"] = transaction.TransactionState_Error
+		return
 	}
-	keyReplayProtection := tran.Config.AutomatId + tran.Config.AccountId
-	resultPayment, PaymentSystem := sapp.Payment(tran)
+	sapp.KeyReplay = tran.Config.AutomatId + tran.Config.AccountId
+	tran.KeyReplay = sapp.KeyReplay
+	resultPayment := sapp.Payment(tran)
 	if resultPayment["status"] == transaction.TransactionState_Error {
-		resultDb["id"] = tran.Config.Tid
-		resultDb["ps_desc"] = resultPayment["ps_desc"]
-		resultDb["error"] = "Ошибка"
-		resultDb["status"] = resultPayment["status"]
-		sapp.Dispetcher.StoreTransaction.SetByParams(resultDb)
-		sapp.Dispetcher.RemoveTransaction(tran.Config.Tid)
-		sapp.returnRoutine()
+		result = sapp.clearMap(result)
+		result["id"] = tran.Config.Tid
+		result["ps_desc"] = resultPayment["ps_desc"]
+		result["error"] = "Ошибка"
+		result["status"] = resultPayment["status"]
+		return
 	}
+	logger.Log.Infof("%+v", result)
+	result = sapp.clearMap(result)
 	resultPayment["id"] = tran.Config.Tid
-	sapp.Dispetcher.StoreTransaction.SetByParams(resultPayment)
-	resultStatusHoldMoney := sapp.PaymentM.SatusHoldMoney(tran, PaymentSystem)
-	if parserTypes.ParseTypeInterfaceToInt(resultStatusHoldMoney["status"]) != transaction.TransactionState_MoneyDebitOk {
-		resultStatusHoldMoney["id"] = tran.Config.Tid
-		resultStatusHoldMoney["error"] = "Ошибка оплаты"
-		sapp.Dispetcher.StoreTransaction.SetByParams(resultStatusHoldMoney)
-		sapp.Dispetcher.RemoveTransaction(tran.Config.Tid)
-		sapp.returnRoutine()
+	transaction_dispetcher.Dispetcher.StoreTransaction.SetByParams(resultPayment)
+	resultPaymentStatus := payment.Payment.Satus(tran)
+	logger.Log.Infof("%+v", resultPaymentStatus)
+	if parserTypes.ParseTypeInterfaceToInt(resultPaymentStatus["status"]) != transaction.TransactionState_MoneyDebitWait {
+		result = sapp.clearMap(result)
+		result["id"] = tran.Config.Tid
+		result["status"] = transaction.TransactionState_Error
+		result["error"] = "Ошибка оплаты"
+		return
 	}
-	resultStatusHoldMoney["id"] = tran.Config.Tid
-	sapp.Dispetcher.StoreTransaction.SetByParams(resultPayment)
-	sapp.Dispetcher.AddReplayProtection(keyReplayProtection, tran.Config.AutomatId)
-	resultMassage := sapp.SendMassage(tran, PaymentSystem)
-	if parserTypes.ParseTypeInterfaceToInt(resultMassage["status"]) != transaction.TransactionState_MoneyHoldWait {
-		resultMassage["id"] = tran.Config.Tid
-		sapp.Dispetcher.StoreTransaction.SetByParams(resultMassage)
-		sapp.Dispetcher.RemoveTransaction(tran.Config.Tid)
-		sapp.Dispetcher.RemoveReplayProtection(keyReplayProtection)
-		sapp.returnRoutine()
+	result["id"] = tran.Config.Tid
+	result["status"] = resultPaymentStatus["status"]
+	transaction_dispetcher.Dispetcher.StoreTransaction.SetByParams(result)
+	transaction_dispetcher.Dispetcher.AddReplayProtection(sapp.KeyReplay, tran.Config.AutomatId)
+	resultSendMessage := sapp.SendMassage(tran)
+	if parserTypes.ParseTypeInterfaceToInt(resultSendMessage["status"]) != transaction.TransactionState_MoneyHoldWait {
+		result = sapp.clearMap(result)
+		result["id"] = tran.Config.Tid
+		result["status"] = transaction.TransactionState_Error
+		result["error"] = resultSendMessage["error"]
+		return
 	}
-	responseRabbit := sapp.WaitMassage(tran, PaymentSystem)
+	responseRabbit := sapp.WaitMassage(tran)
+	fmt.Printf("___%+v_____\n", responseRabbit)
 	if parserTypes.ParseTypeInterfaceToInt(responseRabbit["status"]) == transaction.TransactionState_ReturnMoney {
-		resultDb["id"] = tran.Config.Tid
-		resultDb["ps_desc"] = responseRabbit["ps_desc"]
-		resultDb["error"] = responseRabbit["error"]
-		resultDb["status"] = transaction.TransactionState_Error
-		sapp.Dispetcher.StoreTransaction.SetByParams(resultDb)
-		sapp.Dispetcher.RemoveTransaction(tran.Config.Tid)
-		sapp.Dispetcher.RemoveReplayProtection(keyReplayProtection)
-		sapp.returnRoutine()
+		result = sapp.clearMap(result)
+		result["id"] = tran.Config.Tid
+		result["ps_desc"] = responseRabbit["ps_desc"]
+		result["error"] = responseRabbit["error"]
+		result["status"] = transaction.TransactionState_Error
+		return
 	}
+	logger.Log.Infof("%+v", resultPaymentStatus)
 	if parserTypes.ParseTypeInterfaceToInt(responseRabbit["status"]) != transaction.VendState_Session {
-		resultReturnMoney := sapp.returnMoney(tran, PaymentSystem)
-		resultDb["id"] = tran.Config.Tid
-		resultDb["ps_desc"] = resultReturnMoney["ps_desc"]
-		resultDb["error"] = tran.GetDescriptionErr(parserTypes.ParseTypeInterfaceToInt(responseRabbit["error"]))
-		resultDb["status"] = transaction.TransactionState_Error
-		sapp.Dispetcher.StoreTransaction.SetByParams(resultDb)
-		sapp.Dispetcher.RemoveTransaction(tran.Config.Tid)
-		sapp.Dispetcher.RemoveReplayProtection(keyReplayProtection)
-		sapp.returnRoutine()
+		resultReturnMoney := payment.Payment.Return(tran)
+		result = sapp.clearMap(result)
+		result["id"] = tran.Config.Tid
+		result["ps_desc"] = resultReturnMoney["ps_desc"]
+		result["error"] = tran.GetDescriptionErr(parserTypes.ParseTypeInterfaceToInt(responseRabbit["error"]))
+		result["status"] = transaction.TransactionState_Error
+		return
 	}
-	resultDb["id"] = tran.Config.Tid
-	resultDb["ps_desc"] = tran.GetDescriptionCode(parserTypes.ParseTypeInterfaceToInt(responseRabbit["status"]))
-	resultDb["error"] = tran.GetDescriptionErr(parserTypes.ParseTypeInterfaceToInt(responseRabbit["error"]))
-	resultDb["status"] = tran.GetStatusServer(transaction.VendState_Session)
-	sapp.Dispetcher.StoreTransaction.SetByParams(resultDb)
-	responseRabbit = sapp.WaitMassage(tran, PaymentSystem)
+	result = sapp.clearMap(result)
+	result["id"] = tran.Config.Tid
+	result["ps_desc"] = tran.GetDescriptionCode(parserTypes.ParseTypeInterfaceToInt(responseRabbit["status"]))
+	result["error"] = tran.GetDescriptionErr(parserTypes.ParseTypeInterfaceToInt(responseRabbit["error"]))
+	result["status"] = tran.GetStatusServer(transaction.VendState_Session)
+	logger.Log.Infof("%+v", result)
+	transaction_dispetcher.Dispetcher.StoreTransaction.SetByParams(result)
+	responseRabbit = sapp.WaitMassage(tran)
 	if parserTypes.ParseTypeInterfaceToInt(responseRabbit["status"]) == transaction.TransactionState_ReturnMoney {
-		resultDb["id"] = tran.Config.Tid
-		resultDb["ps_desc"] = responseRabbit["ps_desc"]
-		resultDb["error"] = responseRabbit["error"]
-		resultDb["status"] = transaction.TransactionState_Error
-		sapp.Dispetcher.StoreTransaction.SetByParams(resultDb)
-		sapp.Dispetcher.RemoveTransaction(tran.Config.Tid)
-		sapp.Dispetcher.RemoveReplayProtection(keyReplayProtection)
-		sapp.returnRoutine()
+		result = sapp.clearMap(result)
+		result["id"] = tran.Config.Tid
+		result["ps_desc"] = responseRabbit["ps_desc"]
+		result["error"] = responseRabbit["error"]
+		result["status"] = transaction.TransactionState_Error
+		return
 	}
 	if parserTypes.ParseTypeInterfaceToInt(responseRabbit["status"]) != transaction.VendState_Approving && parserTypes.ParseTypeInterfaceToInt(responseRabbit["status"]) != transaction.VendState_Vending {
-		resultReturnMoney := sapp.returnMoney(tran, PaymentSystem)
-		resultDb["id"] = tran.Config.Tid
-		resultDb["ps_desc"] = resultReturnMoney["ps_desc"]
-		resultDb["error"] = tran.GetDescriptionErr(parserTypes.ParseTypeInterfaceToInt(responseRabbit["error"]))
-		resultDb["status"] = transaction.TransactionState_Error
-		sapp.Dispetcher.StoreTransaction.SetByParams(resultDb)
-		sapp.Dispetcher.RemoveTransaction(tran.Config.Tid)
-		sapp.Dispetcher.RemoveReplayProtection(keyReplayProtection)
-		sapp.returnRoutine()
+		resultReturnMoney := payment.Payment.Return(tran)
+		result = sapp.clearMap(result)
+		result["id"] = tran.Config.Tid
+		result["ps_desc"] = resultReturnMoney["ps_desc"]
+		result["error"] = tran.GetDescriptionErr(parserTypes.ParseTypeInterfaceToInt(responseRabbit["error"]))
+		result["status"] = transaction.TransactionState_Error
+		return
 	}
-	resultDb["id"] = tran.Config.Tid
-	resultDb["ps_desc"] = tran.GetDescriptionCode(parserTypes.ParseTypeInterfaceToInt(responseRabbit["status"]))
-	resultDb["error"] = tran.GetDescriptionErr(parserTypes.ParseTypeInterfaceToInt(responseRabbit["error"]))
-	resultDb["status"] = tran.GetStatusServer(parserTypes.ParseTypeInterfaceToInt(responseRabbit["status"]))
-	sapp.Dispetcher.StoreTransaction.SetByParams(resultDb)
-	reqAutomatConfig := make(map[string]interface{})
-	reqAutomatConfig["to_date"] = nil
-	reqAutomatConfig["account_id"] = tran.Config.AccountId
-	reqAutomatConfig["automat_id"] = tran.Config.AutomatId
-	automatConfig, errC := sapp.Dispetcher.StoreAutomatConfig.GetOneWithOptions(reqAutomatConfig)
-	log.Printf("%+v", automatConfig)
-	if errC != nil {
-		resultReturnMoney := sapp.returnMoney(tran, PaymentSystem)
-		resultDb["id"] = tran.Config.Tid
-		resultDb["ps_desc"] = resultReturnMoney["ps_desc"]
-		resultDb["error"] = "нет конфигурации"
-		resultDb["status"] = transaction.TransactionState_Error
-		sapp.Dispetcher.StoreTransaction.SetByParams(resultDb)
-		sapp.Dispetcher.RemoveTransaction(tran.Config.Tid)
-		sapp.Dispetcher.RemoveReplayProtection(keyReplayProtection)
-		sapp.returnRoutine()
+	result["id"] = tran.Config.Tid
+	result["ps_desc"] = tran.GetDescriptionCode(parserTypes.ParseTypeInterfaceToInt(responseRabbit["status"]))
+	result["error"] = tran.GetDescriptionErr(parserTypes.ParseTypeInterfaceToInt(responseRabbit["error"]))
+	result["status"] = tran.GetStatusServer(parserTypes.ParseTypeInterfaceToInt(responseRabbit["status"]))
+	transaction_dispetcher.Dispetcher.StoreTransaction.SetByParams(result)
+	logger.Log.Infof("%+v", result)
+	result = sapp.setProduct(tran, responseRabbit)
+	if _, ok := result["status"]; ok {
+		transaction_dispetcher.Dispetcher.StoreTransaction.SetByParams(result)
 	}
-	reqConfigProduct := make(map[string]interface{})
-	reqConfigProduct["config_id"] = automatConfig.Config_id
-	reqConfigProduct["account_id"] = tran.Config.AccountId
-	reqConfigProduct["ware_id"] = responseRabbit["ware_id"]
-	log.Printf("%v", reqConfigProduct)
-	configProduct, errP := sapp.Dispetcher.StoreConfigProduct.GetOneWithOptions(reqConfigProduct)
-	log.Printf("%+v", configProduct)
-	if errP != nil {
-		log.Printf("%+v", errP)
-		resultReturnMoney := sapp.returnMoney(tran, PaymentSystem)
-		resultDb["id"] = tran.Config.Tid
-		resultDb["ps_desc"] = resultReturnMoney["ps_desc"]
-		resultDb["error"] = "нет такого продукта в ассортименте"
-		resultDb["status"] = transaction.TransactionState_Error
-		sapp.Dispetcher.StoreTransaction.SetByParams(resultDb)
-		sapp.Dispetcher.RemoveTransaction(tran.Config.Tid)
-		sapp.Dispetcher.RemoveReplayProtection(keyReplayProtection)
-		sapp.returnRoutine()
-	}
-	ware, errW := sapp.Dispetcher.StoreWare.GetOneById(configProduct.Ware_id, tran.Config.AccountId)
-	log.Printf("%+v", ware)
-	if errW != nil {
-		log.Printf("%+v", errW)
-		resultReturnMoney := sapp.returnMoney(tran, PaymentSystem)
-		resultDb["id"] = tran.Config.Tid
-		resultDb["ps_desc"] = resultReturnMoney["ps_desc"]
-		resultDb["error"] = "нет такого товара в номенклатуре"
-		resultDb["status"] = transaction.TransactionState_Error
-		sapp.Dispetcher.StoreTransaction.SetByParams(resultDb)
-		sapp.Dispetcher.RemoveTransaction(tran.Config.Tid)
-		sapp.Dispetcher.RemoveReplayProtection(keyReplayProtection)
-		sapp.returnRoutine()
-	}
+	result = sapp.clearMap(result)
 	tran.Payment.DebitSum = parserTypes.ParseTypeInterfaceToInt(responseRabbit["sum"])
-	resultDebitMoney := sapp.PaymentM.StartDebitHoldMoney(tran, PaymentSystem)
+	resultDebitMoney := payment.Payment.Debit(tran)
 	if parserTypes.ParseTypeInterfaceToInt(resultDebitMoney["status"]) != transaction.TransactionState_MoneyDebitOk {
-		resultReturnMoney := sapp.returnMoney(tran, PaymentSystem)
-		resultDb["id"] = tran.Config.Tid
-		resultDb["ps_desc"] = resultReturnMoney["ps_desc"]
-		resultDb["error"] = "не удалось списать деньги"
-		resultDb["status"] = transaction.TransactionState_Error
-		sapp.Dispetcher.StoreTransaction.SetByParams(resultDb)
-		sapp.Dispetcher.RemoveTransaction(tran.Config.Tid)
-		sapp.Dispetcher.RemoveReplayProtection(keyReplayProtection)
-		sapp.returnRoutine()
+		resultReturnMoney := payment.Payment.Return(tran)
+		result = sapp.clearMap(result)
+		result["id"] = tran.Config.Tid
+		result["ps_desc"] = resultReturnMoney["ps_desc"]
+		result["error"] = "не удалось списать деньги"
+		result["status"] = transaction.TransactionState_Error
+		return
 	}
-	resultDb["id"] = tran.Config.Tid
-	resultDb["ps_desc"] = resultDebitMoney["ps_desc"]
-	resultDb["error"] = tran.GetDescriptionErr(parserTypes.ParseTypeInterfaceToInt(responseRabbit["error"]))
-	resultDb["status"] = tran.GetStatusServer(transaction.VendState_Session)
-	sapp.Dispetcher.StoreTransaction.SetByParams(resultDb)
-	responseRabbit = sapp.WaitMassage(tran, PaymentSystem)
+	result = sapp.clearMap(result)
+	result["id"] = tran.Config.Tid
+	result["ps_desc"] = resultDebitMoney["ps_desc"]
+	result["error"] = tran.GetDescriptionErr(parserTypes.ParseTypeInterfaceToInt(responseRabbit["error"]))
+	result["status"] = tran.GetStatusServer(transaction.VendState_Session)
+	transaction_dispetcher.Dispetcher.StoreTransaction.SetByParams(result)
+	responseRabbit = sapp.WaitMassage(tran)
 	if parserTypes.ParseTypeInterfaceToInt(responseRabbit["status"]) == transaction.TransactionState_ReturnMoney {
-		resultDb["id"] = tran.Config.Tid
-		resultDb["ps_desc"] = responseRabbit["ps_desc"]
-		resultDb["error"] = responseRabbit["error"]
-		resultDb["status"] = transaction.TransactionState_Error
-		sapp.Dispetcher.StoreTransaction.SetByParams(resultDb)
-		sapp.Dispetcher.RemoveTransaction(tran.Config.Tid)
-		sapp.Dispetcher.RemoveReplayProtection(keyReplayProtection)
-		sapp.returnRoutine()
+		result = sapp.clearMap(result)
+		result["id"] = tran.Config.Tid
+		result["ps_desc"] = responseRabbit["ps_desc"]
+		result["error"] = responseRabbit["error"]
+		result["status"] = transaction.TransactionState_Error
+		return
 	}
 	if parserTypes.ParseTypeInterfaceToInt(responseRabbit["status"]) != transaction.VendState_VendOk {
-		resultReturnMoney := sapp.returnMoney(tran, PaymentSystem)
-		resultDb["id"] = tran.Config.Tid
-		resultDb["ps_desc"] = resultReturnMoney["ps_desc"]
-		resultDb["error"] = tran.GetDescriptionErr(parserTypes.ParseTypeInterfaceToInt(responseRabbit["error"]))
-		resultDb["status"] = transaction.TransactionState_Error
-		sapp.Dispetcher.StoreTransaction.SetByParams(resultDb)
-		sapp.Dispetcher.RemoveTransaction(tran.Config.Tid)
-		sapp.Dispetcher.RemoveReplayProtection(keyReplayProtection)
-		sapp.returnRoutine()
+		result = sapp.clearMap(result)
+		resultReturnMoney := payment.Payment.Return(tran)
+		result["id"] = tran.Config.Tid
+		result["ps_desc"] = resultReturnMoney["ps_desc"]
+		result["error"] = tran.GetDescriptionErr(parserTypes.ParseTypeInterfaceToInt(responseRabbit["error"]))
+		result["status"] = transaction.TransactionState_Error
+		return
 	}
-	resultDb["id"] = tran.Config.Tid
-	resultDb["ps_desc"] = tran.GetDescriptionCode(parserTypes.ParseTypeInterfaceToInt(responseRabbit["status"]))
-	resultDb["error"] = tran.GetDescriptionErr(parserTypes.ParseTypeInterfaceToInt(responseRabbit["error"]))
-	resultDb["status"] = tran.GetStatusServer(transaction.VendState_VendOk)
-	sapp.Dispetcher.StoreTransaction.SetByParams(resultDb)
-	sapp.Dispetcher.RemoveTransaction(tran.Config.Tid)
-	sapp.Dispetcher.RemoveReplayProtection(keyReplayProtection)
-	sapp.returnRoutine()
+	result = sapp.clearMap(result)
+	result["id"] = tran.Config.Tid
+	result["ps_desc"] = tran.GetDescriptionCode(parserTypes.ParseTypeInterfaceToInt(responseRabbit["status"]))
+	result["error"] = tran.GetDescriptionErr(parserTypes.ParseTypeInterfaceToInt(responseRabbit["error"]))
+	result["status"] = tran.GetStatusServer(transaction.VendState_VendOk)
+	return
 }
 
-func (sapp *SaleAutomatPostPaid) Payment(tran *transaction.Transaction) (map[string]interface{}, interfacePayment.Payment) {
-	resultDb := make(map[string]interface{})
-	resultPayment, PaymentSystem := sapp.PaymentM.StartPayment(tran)
+func (sapp *SaleAutomatPostPaid) Payment(tran *transaction.Transaction) map[string]interface{} {
+	result := make(map[string]interface{})
+	resultPayment := payment.Payment.Payment(tran)
 	if resultPayment["status"] != transaction.TransactionState_MoneyHoldStart {
-		return resultPayment, nil
+		return resultPayment
 	}
-	resultDb["id"] = tran.Config.Tid
-	resultDb["status"] = transaction.TransactionState_MoneyHoldWait
-	sapp.Dispetcher.StoreTransaction.SetByParams(resultDb)
-	resultPay := sapp.PaymentM.StartPostpaid(tran, PaymentSystem)
+	result["id"] = tran.Config.Tid
+	result["status"] = transaction.TransactionState_MoneyHoldWait
+	transaction_dispetcher.Dispetcher.StoreTransaction.SetByParams(result)
+	resultPay := payment.Payment.Hold(tran)
 	if resultPay["status"] == transaction.TransactionState_Error {
-		return resultPay, nil
+		return resultPay
 	}
-	return resultPay, PaymentSystem
+	return resultPay
 }
 
-func (sapp *SaleAutomatPostPaid) SendMassage(tran *transaction.Transaction, PaymentSystem interfacePayment.Payment) map[string]interface{} {
+func (sapp *SaleAutomatPostPaid) SendMassage(tran *transaction.Transaction) map[string]interface{} {
 	result := make(map[string]interface{})
 	resultMessage := make(map[string]interface{})
-	var errSend error
 	resultMessage["tid"] = tran.Config.Tid
 	resultMessage["sum"] = tran.Payment.Sum
 	resultMessage["m"] = 1
 	resultMessage["a"] = 2
-	publicher, err := sapp.QueueManager.AddPublisher(sapp.QueueManager.ContextRabbit, fmt.Sprintf("ephor.1.dev.%v", tran.Config.Imei), "", fmt.Sprintf("ephor.1.dev.%v", tran.Config.Imei))
+	err := transport_manager.TransportManager.QueueManager.SendMessage(resultMessage, tran.Config.Imei)
 	if err != nil {
-		return sapp.returnMoney(tran, PaymentSystem)
-	}
-	err = publicher.SendMessage(sapp.QueueManager.ContextRabbit, resultMessage)
-	if err != nil {
-		for _, v := range sapp.cfg.RabbitMq.BackOffPolicySendMassage {
-			time.Sleep(v * time.Second)
-			if errSend = publicher.SendMessage(sapp.QueueManager.ContextRabbit, resultMessage); errSend != nil {
-				log.Printf("Fail send massage to device with imei: %v, wait time to retry send is %v", tran.Config.Imei, v)
-				time.Sleep(v * time.Second)
-				continue
-			}
-			break
-		}
-		if errSend != nil {
-			return sapp.returnMoney(tran, PaymentSystem)
-		}
+		return payment.Payment.Return(tran)
 	}
 	result["status"] = transaction.TransactionState_MoneyHoldWait
 	return result
 }
 
-func (sapp *SaleAutomatPostPaid) WaitMassage(tran *transaction.Transaction, PaymentSystem interfacePayment.Payment) map[string]interface{} {
-	timer := time.NewTimer(sapp.cfg.RabbitMq.ExecuteTimeSeconds * time.Second)
-	log.Printf("\n [x] %s", "Timer")
-	Tran := *tran
-	request := make(map[string]interface{})
-	select {
-	case <-timer.C:
-		{
-			request = sapp.returnMoney(tran, PaymentSystem)
-			request["status"] = transaction.TransactionState_ReturnMoney
-			request["error"] = "Время ожидания ответа от автомата истекло"
-			fmt.Println("Timer is end")
-			timer.Stop()
-		}
-	case result, ok := <-Tran.ChannelMessage:
-		{
-			if !ok {
-				request = sapp.returnMoney(tran, PaymentSystem)
-				request["status"] = transaction.TransactionState_ReturnMoney
-				request["error"] = "Трананзакция завершена в ручную"
-				fmt.Println("Timer is end")
-				timer.Stop()
-			}
-			response := responseQueueManager.ResponseQueue{}
-			json.Unmarshal(result, &response)
-			request["status"] = response.St
-			request["error"] = response.Err
-			request["ware_id"] = response.Wid
-			request["sum"] = response.Sum
-			request["action"] = response.A
-			request["device_imei"] = response.D
-			timer.Stop()
-			if sapp.cfg.Debug {
-				log.Printf("\n [x] %s", "Timer ok")
-				log.Println("Timer ok")
-			}
-		}
+func (sapp *SaleAutomatPostPaid) WaitMassage(tran *transaction.Transaction) map[string]interface{} {
+	response := make(map[string]interface{})
+	result, err := transport_manager.TransportManager.QueueManager.WaitMessage(tran.ChannelMessage, sapp.ExecuteTimeSeconds)
+	if err != nil {
+		request := payment.Payment.Return(tran)
+		request["status"] = transaction.TransactionState_ReturnMoney
+		request["error"] = err.Error()
 	}
-	return request
+	response["status"] = result["st"]
+	response["error"] = result["err"]
+	response["tid"] = result["tid"]
+	response["ware_id"] = result["wid"]
+	response["sum"] = result["sum"]
+	response["a"] = result["a"]
+	response["d"] = result["d"]
+	return response
+}
+
+func (sapp *SaleAutomatPostPaid) clearMap(Map map[string]interface{}) map[string]interface{} {
+	Map = nil
+	Map = make(map[string]interface{})
+	return Map
 }
 
 func (sapp *SaleAutomatPostPaid) Fiscal(tran *transaction.Transaction) map[string]interface{} {
 	return make(map[string]interface{})
 }
 
-func (sapp *SaleAutomatPostPaid) returnMoney(tran *transaction.Transaction, PaymentSystem interfacePayment.Payment) map[string]interface{} {
-	return sapp.PaymentM.ReturnMoney(tran, PaymentSystem)
+func (sapp *SaleAutomatPostPaid) setProduct(tran *transaction.Transaction, responseDevice map[string]interface{}) (result map[string]interface{}) {
+	result = make(map[string]interface{})
+	reqAutomatConfig := tran.NewRequest()
+	reqAutomatConfig.AddFilterParam("automat_id", reqAutomatConfig.Operator.OperatorEqual, true, tran.Config.AutomatId)
+	reqAutomatConfig.AddFilterParam("to_date", reqAutomatConfig.Operator.OperatorEqual, true)
+	automatConfig, err := tran.Stores.StoreAutomatConfig.GetOneBy(reqAutomatConfig)
+	if err != nil {
+		logger.Log.Errorf("нет конфигурации")
+		resultReturnMoney := payment.Payment.Return(tran)
+		result["id"] = tran.Config.Tid
+		result["ps_desc"] = resultReturnMoney["ps_desc"]
+		result["error"] = "нет конфигурации"
+		result["status"] = transaction.TransactionState_Error
+		return
+	}
+	if automatConfig.Id == 0 {
+		logger.Log.Errorf("нет конфигурации")
+		resultReturnMoney := payment.Payment.Return(tran)
+		result["id"] = tran.Config.Tid
+		result["ps_desc"] = resultReturnMoney["ps_desc"]
+		result["error"] = "нет конфигурации"
+		result["status"] = transaction.TransactionState_Error
+		return
+	}
+	reqConfigProduct := tran.NewRequest()
+	reqConfigProduct.AddFilterParam("config_id", reqConfigProduct.Operator.OperatorEqual, true, automatConfig.Config_id.Int32)
+	reqConfigProduct.AddFilterParam("ware_id", reqConfigProduct.Operator.OperatorEqual, true, responseDevice["ware_id"])
+	configProduct, er := tran.Stores.StoreConfigProduct.GetOneBy(reqConfigProduct)
+	if er != nil {
+		logger.Log.Errorf("нет такого продукта в ассортименте")
+		resultReturnMoney := payment.Payment.Return(tran)
+		result["id"] = tran.Config.Tid
+		result["ps_desc"] = resultReturnMoney["ps_desc"]
+		result["error"] = "нет такого продукта в ассортименте"
+		result["status"] = transaction.TransactionState_Error
+		return
+	}
+	if configProduct.Id == 0 {
+		logger.Log.Errorf("нет такого продукта в ассортименте")
+		resultReturnMoney := payment.Payment.Return(tran)
+		result["id"] = tran.Config.Tid
+		result["ps_desc"] = resultReturnMoney["ps_desc"]
+		result["error"] = "нет такого продукта в ассортименте"
+		result["status"] = transaction.TransactionState_Error
+		return
+	}
+	ware, errW := tran.Stores.StoreWare.GetOneById(parserTypes.ParseTypeInterfaceToInt(responseDevice["ware_id"]))
+	if errW != nil {
+		logger.Log.Errorf("нет такого товара в номенклатуре")
+		resultReturnMoney := payment.Payment.Return(tran)
+		result["id"] = tran.Config.Tid
+		result["ps_desc"] = resultReturnMoney["ps_desc"]
+		result["error"] = "нет такого товара в номенклатуре"
+		result["status"] = transaction.TransactionState_Error
+		return
+	}
+	if ware.Id == 0 {
+		logger.Log.Errorf("нет такого товара в номенклатуре")
+		resultReturnMoney := payment.Payment.Return(tran)
+		result["id"] = tran.Config.Tid
+		result["ps_desc"] = resultReturnMoney["ps_desc"]
+		result["error"] = "нет такого товара в номенклатуре"
+		result["status"] = transaction.TransactionState_Error
+		return
+	}
+	logger.Log.Infof("%+v", ware)
+	logger.Log.Infof("%+v", configProduct)
+	product := &transaction.Product{
+		Name:           ware.Name.String,
+		Payment_device: "DA",
+		Type:           ware.Type.Int32,
+		Select_id:      configProduct.Select_id.String,
+		Ware_id:        configProduct.Ware_id.Int32,
+		Tax_rate:       configProduct.Tax_rate.Int32,
+		Quantity:       int64(1000),
+		Value:          parserTypes.ParseTypeInFloat64(responseDevice["sum"]),
+		Price:          parserTypes.ParseTypeInFloat64(responseDevice["sum"]),
+	}
+	tran.Products = append(tran.Products, product)
+	sapp.AddProductTransaction(tran)
+	logger.Log.Infof("%+v", tran.Products)
+	return
 }
 
-func (sapp *SaleAutomatPostPaid) returnRoutine() {
-	runtime.Goexit()
+func (sapp *SaleAutomatPostPaid) AddProductTransaction(tran *transaction.Transaction) {
+	transaction_dispetcher.Dispetcher.AddTransactionProduct(tran)
+}
+
+func (sapp *SaleAutomatPostPaid) returnRoutine(result *map[string]interface{}, tid int) {
+	status := *result
+	if r := recover(); r != nil {
+		status["status"] = transaction.TransactionState_Error
+		status["error"] = fmt.Sprintf("%v", r)
+		logger.Log.Errorf("recovered from %v", r)
+	}
+	transaction_dispetcher.Dispetcher.StoreTransaction.SetByParams(*result)
+	if parserTypes.ParseTypeInterfaceToInt(status["status"]) == transaction.TransactionState_Error {
+		transaction_dispetcher.Dispetcher.RemoveTransaction(tid)
+		transaction_dispetcher.Dispetcher.RemoveReplayProtection(sapp.KeyReplay)
+	}
 }

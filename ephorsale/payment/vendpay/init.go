@@ -1,36 +1,38 @@
 package vendpay
 
 import (
-	config "ephorservices/config"
-	"ephorservices/ephorsale/payment/interfacePayment"
-	"ephorservices/ephorsale/transaction"
+	"ephorservices/ephorsale/payment/interface/payment"
+	transaction "ephorservices/ephorsale/transaction/transaction_struct"
 	"fmt"
 	"math"
 )
 
 type VendPay struct {
-	Status  int
+	State   int
 	Name    string
 	Counter int
-	cfg     *config.Config
+	Debug   bool
 }
 
 type NewVendStruct struct {
 	VendPay
 }
 
-func (vend NewVendStruct) New(conf *config.Config) interfacePayment.Payment /* тип interfaceBank.Bank*/ {
+func (vend NewVendStruct) New(debug bool) payment.Payment /* тип interfaceBank.Bank*/ {
 	return &NewVendStruct{
 		VendPay: VendPay{
 			Name:    "VendPay",
 			Counter: 0,
-			Status:  0,
-			cfg:     conf,
+			State:   0,
+			Debug:   debug,
 		},
 	}
 }
+func (v *VendPay) GetName() string {
+	return v.Name
+}
 
-func (v *VendPay) HoldMoney(tran *transaction.Transaction) map[string]interface{} {
+func (v *VendPay) Hold(tran *transaction.Transaction) map[string]interface{} {
 	ResponsePaymentSystem := make(map[string]interface{})
 	sum := float64(tran.Payment.Sum)
 	ResponsePaymentSystem["status"] = true
@@ -41,7 +43,7 @@ func (v *VendPay) HoldMoney(tran *transaction.Transaction) map[string]interface{
 	return ResponsePaymentSystem
 }
 
-func (v *VendPay) DebitHoldMoney(tran *transaction.Transaction) map[string]interface{} {
+func (v *VendPay) Debit(tran *transaction.Transaction) map[string]interface{} {
 	ResponsePaymentSystem := make(map[string]interface{})
 	ResponsePaymentSystem["status"] = true
 	ResponsePaymentSystem["message"] = "Деньги списаны"
@@ -50,7 +52,7 @@ func (v *VendPay) DebitHoldMoney(tran *transaction.Transaction) map[string]inter
 	return ResponsePaymentSystem
 }
 
-func (v *VendPay) GetStatusHoldMoney(tran *transaction.Transaction) map[string]interface{} {
+func (v *VendPay) Status(tran *transaction.Transaction) map[string]interface{} {
 	ResponsePaymentSystem := make(map[string]interface{})
 	ResponsePaymentSystem["status"] = true
 	ResponsePaymentSystem["message"] = "Оплата подтверждена"
@@ -59,7 +61,7 @@ func (v *VendPay) GetStatusHoldMoney(tran *transaction.Transaction) map[string]i
 	return ResponsePaymentSystem
 }
 
-func (v *VendPay) ReturnMoney(tran *transaction.Transaction) map[string]interface{} {
+func (v *VendPay) Return(tran *transaction.Transaction) map[string]interface{} {
 	ResponsePaymentSystem := make(map[string]interface{})
 	ResponsePaymentSystem["status"] = true
 	ResponsePaymentSystem["message"] = "Деньги возвращены"
@@ -70,6 +72,3 @@ func (v *VendPay) ReturnMoney(tran *transaction.Transaction) map[string]interfac
 
 func (v *VendPay) Timeout() {
 }
-
-
-

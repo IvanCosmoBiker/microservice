@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package service;
+
+import "google/api/annotations.proto";
+
+option go_package = "./service";
+
+service FiscalService {
+
+    rpc Fiscal(Request) returns (Response) {
+        option (google.api.http) = {
+            post: "/v1/fiscal"
+            body: "*"
+        };
+    }
+
+    rpc Refund(Request) returns (Response) {
+        option (google.api.http) = {
+            post: "/v1/refund"
+            body: "*"
+        };
+    }
+
+    rpc StatusKkt(RequestStatus) returns (ResponseStatus) {
+        option (google.api.http) = {
+            post: "/v1/status"
+            body: "*"
+        };
+    }
+}
+
+message RequestStatus {
+    string id = 1;
+    string name = 2;
+}
+
+message Item {
+    string select_id = 1;
+    int32 ware_id = 2;
+    string name = 3;
+    string device = 4;
+    int32 price_list = 5;
+    sint64 price = 6;
+    sint64 amount = 7;
+    int32 tax_rate = 8;
+}
+
+message Request {
+    string date = 1;
+    string point_addr = 2;
+    string point_name = 3;
+    string automat_number = 4;
+    repeated Item item = 5;
+    int32 tax_system = 6;
+    sint64 cash = 7;
+    sint64 cashless = 8;
+}
+
+message Event {
+    sint64 id  = 1;
+}
+
+message Response {
+    string message = 1;
+    string method = 2;
+    repeated Event events = 3;
+    int32 httpCode = 4;
+    int32 statusCode = 5;
+    int32 fiscalization = 6;
+    message Field {
+        string fp = 1;
+        string fn = 2;
+        string dateFisal = 3;
+        sint64 fd = 4;
+    }
+    Field fields = 7;
+}
+
+message ResponseStatus {
+    int32 statusCode = 1;
+    string message = 2;
+    string provider_name = 3;
+    string provider_response = 4;
+    string group_name = 5;
+    int32 fiscal_id = 6;
+    sint64 serial_number = 7;
+    int32 inn = 8;
+    sint64 filled = 9;
+    sint64 days_to_end = 10;
+    string sign_private_key = 11;
+}

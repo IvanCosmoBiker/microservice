@@ -1,10 +1,11 @@
 package sberpay
 
 import (
-	config "ephorservices/config"
-	"ephorservices/ephorsale/payment/interfacePayment"
+	"ephorservices/ephorsale/payment/interface/payment"
+	"ephorservices/ephorsale/payment/sberpay/core"
 	response "ephorservices/ephorsale/payment/sberpay/response"
-	transaction "ephorservices/ephorsale/transaction"
+	"ephorservices/ephorsale/payment/sberpay/transport"
+	transaction "ephorservices/ephorsale/transaction/transaction_struct"
 	parserTypes "ephorservices/pkg/parser/typeParse"
 	"fmt"
 	"log"
@@ -14,29 +15,29 @@ import (
 type SberPay struct {
 	Name                     string
 	Counter                  int
-	Status                   int
-	Core                     *Core
-	Http                     *Http
+	State                    int
+	Core                     *core.Core
+	Http                     *transport.Http
 	UrlCreateOrderSberPay    string
 	UrlGetStatusOrderSberPay string
 	UrlDepositeOrderSberPay  string
 	UrlReverseSberPay        string
 	UrlRefundSberPay         string
-	cfg                      *config.Config
+	Debug                    bool
 }
 
 type NewSberPayStruct struct {
 	SberPay
 }
 
-func (sberPay NewSberPayStruct) New(conf *config.Config) interfacePayment.Payment /* тип Payment*/ {
-	Core := InitCore(conf)
-	Http := InitHttp(conf)
+func (sberPay NewSberPayStruct) New(debug bool) payment.Payment /* тип Payment*/ {
+	Core := core.InitCore()
+	Http := transport.InitHttp(debug)
 	return &NewSberPayStruct{
 		SberPay: SberPay{
 			Name:                     "SberPay",
 			Counter:                  0,
-			Status:                   0,
+			State:                    0,
 			Core:                     Core,
 			Http:                     Http,
 			UrlCreateOrderSberPay:    "https://securepayments.sberbank.ru/payment/rest/registerPreAuth.do",
@@ -44,14 +45,18 @@ func (sberPay NewSberPayStruct) New(conf *config.Config) interfacePayment.Paymen
 			UrlDepositeOrderSberPay:  "https://securepayments.sberbank.ru/payment/rest/deposit.do",
 			UrlReverseSberPay:        "https://securepayments.sberbank.ru//payment/rest/reverse.do",
 			UrlRefundSberPay:         "https://securepayments.sberbank.ru//payment/rest/refund.do",
-			cfg:                      conf,
+			Debug:                    debug,
 		},
 	}
 }
 
-func (sb *SberPay) HoldMoney(tran *transaction.Transaction) map[string]interface{} {
+func (sb *SberPay) GetName() string {
+	return sb.Name
+}
+
+func (sb *SberPay) Hold(tran *transaction.Transaction) map[string]interface{} {
 	ResponsePaymentSystem := make(map[string]interface{})
-	stringCreateOrder, err := sb.Core.makeRequestCreateOrder(tran)
+	stringCreateOrder, err := sb.Core.MakeRequestCreateOrder(tran)
 	if err != nil {
 		ResponsePaymentSystem["status"] = false
 		ResponsePaymentSystem["message"] = fmt.Sprintf("%v", err)
@@ -62,7 +67,7 @@ func (sb *SberPay) HoldMoney(tran *transaction.Transaction) map[string]interface
 	Response := &response.ResponseCreateOrder{}
 	url := fmt.Sprintf("%s?%s", sb.UrlCreateOrderSberPay, stringCreateOrder)
 	header := make(map[string]interface{})
-	funcSend := sb.Http.Send(sb.Http.Call, "POST", url, header, nil, Response, 3, 2)
+	funcSend := sb.Http.Send(sb.Http.Call, "POST", url, header, nil, Response, 3, 30)
 	StatusCode, errResp := funcSend("POST", url, header, nil, Response)
 	if errResp != nil {
 		ResponsePaymentSystem["status"] = false
@@ -101,16 +106,19 @@ func (sb *SberPay) HoldMoney(tran *transaction.Transaction) map[string]interface
 	ResponsePaymentSystem["invoiceId"] = Response.ExternalParams.SbolBankInvoiceId
 	tran.Payment.SbolBankInvoiceId = Response.ExternalParams.SbolBankInvoiceId
 	tran.Payment.OrderId = Response.OrderId
-	if sb.cfg.Debug {
+	if sb.Debug {
 		log.Printf(tran.Payment.SbolBankInvoiceId)
 		log.Printf(tran.Payment.OrderId)
 	}
 	return ResponsePaymentSystem
 }
 
-func (sb *SberPay) GetStatusHoldMoney(tran *transaction.Transaction) map[string]interface{} {
+func (sb *SberPay) Status(tran *transaction.Transaction) map[string]interface{} {
 	ResponsePaymentSystem := make(map[string]interface{})
-	requestStatus, err := sb.Core.makeRequestStatusOrder(tran)
+	ResponsePaymentSystem["status"] = false
+	ResponsePaymentSystem["message"] = "Нет ответа от банка"
+	ResponsePaymentSystem["description"] = "Нет ответа от банка"
+	requestStatus, err := sb.Core.MakeRequestStatusOrder(tran)
 	if err != nil {
 		ResponsePaymentSystem["status"] = false
 		ResponsePaymentSystem["message"] = fmt.Sprintf("%s", err)
@@ -136,8 +144,9 @@ func (sb *SberPay) GetStatusHoldMoney(tran *transaction.Transaction) map[string]
 		case <-time.After(5 * time.Second):
 			{
 				Response := &response.ResponseStatusOrder{}
-				funcSend := sb.Http.Send(sb.Http.Call, "POST", url, header, nil, Response, 3, 2)
+				funcSend := sb.Http.Send(sb.Http.Call, "POST", url, header, nil, Response, 3, 30)
 				StatusCode, errResp := funcSend("POST", url, header, nil, Response)
+				log.Printf("%+v", Response)
 				if errResp != nil {
 					ResponsePaymentSystem["status"] = false
 					ResponsePaymentSystem["message"] = fmt.Sprintf("%v", errResp)
@@ -192,9 +201,10 @@ func (sb *SberPay) GetStatusHoldMoney(tran *transaction.Transaction) map[string]
 			}
 		}
 	}
+	return ResponsePaymentSystem
 }
 
-func (sb *SberPay) DebitHoldMoney(tran *transaction.Transaction) map[string]interface{} {
+func (sb *SberPay) Debit(tran *transaction.Transaction) map[string]interface{} {
 	ResponsePaymentSystem := make(map[string]interface{})
 	if tran.Payment.DebitSum == 0 {
 		ResponsePaymentSystem["status"] = false
@@ -202,7 +212,7 @@ func (sb *SberPay) DebitHoldMoney(tran *transaction.Transaction) map[string]inte
 		ResponsePaymentSystem["description"] = "не задана сумма для списания"
 		return ResponsePaymentSystem
 	}
-	dataPush, err := sb.Core.makeRequestDepositOrder(tran)
+	dataPush, err := sb.Core.MakeRequestDepositOrder(tran)
 	if err != nil {
 		ResponsePaymentSystem["status"] = false
 		ResponsePaymentSystem["message"] = fmt.Sprintf("%s", err)
@@ -212,7 +222,7 @@ func (sb *SberPay) DebitHoldMoney(tran *transaction.Transaction) map[string]inte
 	Response := &response.ResponseDebitOrder{}
 	header := make(map[string]interface{})
 	url := fmt.Sprintf("%s?%s", sb.UrlDepositeOrderSberPay, dataPush)
-	funcSend := sb.Http.Send(sb.Http.Call, "POST", url, header, nil, Response, 3, 2)
+	funcSend := sb.Http.Send(sb.Http.Call, "POST", url, header, nil, Response, 3, 30)
 	StatusCode, errResp := funcSend("POST", url, header, nil, Response)
 	if errResp != nil {
 		ResponsePaymentSystem["status"] = false
@@ -236,7 +246,7 @@ func (sb *SberPay) DebitHoldMoney(tran *transaction.Transaction) map[string]inte
 		return ResponsePaymentSystem
 	}
 	if errCode == 7 {
-		return sb.DebitHoldMoney(tran)
+		return sb.Debit(tran)
 	}
 	tran.Status = transaction.TransactionState_MoneyDebitOk
 	ResponsePaymentSystem["status"] = true
@@ -245,9 +255,9 @@ func (sb *SberPay) DebitHoldMoney(tran *transaction.Transaction) map[string]inte
 	return ResponsePaymentSystem
 }
 
-func (sb *SberPay) ReturnMoney(tran *transaction.Transaction) map[string]interface{} {
+func (sb *SberPay) Return(tran *transaction.Transaction) map[string]interface{} {
 	ResponsePaymentSystem := make(map[string]interface{})
-	stringRequest, _ := sb.Core.makeRequestReturnMoney(tran)
+	stringRequest, _ := sb.Core.MakeRequestReturnMoney(tran)
 	url := ""
 	if tran.Status == transaction.TransactionState_MoneyDebitWait {
 		url = fmt.Sprintf("%s?%s", sb.UrlReverseSberPay, stringRequest)
@@ -257,8 +267,9 @@ func (sb *SberPay) ReturnMoney(tran *transaction.Transaction) map[string]interfa
 	}
 	Response := &response.ResponseReturnOrder{}
 	header := make(map[string]interface{})
-	funSend := sb.Http.Send(sb.Http.Call, "POST", url, header, nil, Response, 3, 2)
+	funSend := sb.Http.Send(sb.Http.Call, "POST", url, header, nil, Response, 3, 30)
 	StatusCode, errResp := funSend("POST", url, header, nil, Response)
+	log.Printf("%+v", Response)
 	if errResp != nil {
 		ResponsePaymentSystem["status"] = false
 		ResponsePaymentSystem["message"] = fmt.Sprintf("%v", errResp)

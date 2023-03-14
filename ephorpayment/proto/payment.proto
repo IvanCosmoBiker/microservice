@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package service;
+
+option go_package = "./";
+
+service PaymentService {
+	rpc Hold(Request) returns (Response) {}
+	rpc Debit(Request) returns (Response) {}
+	rpc Satus(Request) returns (Response) {}
+	rpc Payment(Request) returns (Response) {}
+	rpc Return(Request) returns (Response) {}
+}
+
+message Request {
+    int32 status = 1;
+    int32 payType = 2; 
+    int32 tokenType = 3; 
+    int32 paymentId = 4;
+    double sum = 5;
+    int32 currensyCode = 6;
+    int32 typeSale = 7;
+    double debitSum = 8;
+    uint32 type = 9;
+    string orderId = 10;
+    string operationId = 11;
+    string invoiceId = 12;
+    string tid = 13;
+	string secretKey = 14;
+    string keyPayment = 15;
+    string service_id = 16;
+    string tidPaymentSystem = 17;
+    string HostPaymentSystem = 18;
+    string sbolBankInvoiceId = 19; 
+	string login = 20;
+    string password = 21; 
+    string merchantId = 22; 
+    string gateWay = 23; 
+    string token = 24; 
+    string userPhone = 25; 
+    string returnUrl = 26; 
+    string deepLink = 27; 
+    string sbpPoint = 28; 
+    string language = 29; 
+    string description = 30;   
+}
+
+message Response {
+    uint32 status = 1;
+    string order = 2;
+    string desc = 3;
+    string error = 4;
+    string invoice_id = 5;
+}

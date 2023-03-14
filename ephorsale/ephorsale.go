@@ -3,10 +3,10 @@ package ephorsale
 // main file for start microservice
 import (
 	config "ephorservices/config"
+	manager_service "ephorservices/ephorsale/manager"
+	logger "ephorservices/pkg/logger"
 	"flag"
-	"fmt"
 	"log"
-	"os"
 
 	"github.com/kardianos/service"
 )
@@ -14,13 +14,12 @@ import (
 // Program structures.
 // Define Start and Stop methods.
 type SaleService struct {
+	Manager    *manager_service.Manager
 	State      int
-	Logger     *log.Logger
+	Logger     *logger.Logger
 	Config     service.Config
 	ConfigFile *config.Config
 }
-
-var manager SaleServiceManager
 
 func (se *SaleService) Start(s service.Service) error {
 	if service.Interactive() {
@@ -28,19 +27,17 @@ func (se *SaleService) Start(s service.Service) error {
 	} else {
 		log.Print("Running under service manager.")
 	}
-	// Start should not block. Do the actual work async.
 	go se.run(s)
 	return nil
 }
 
 func (se *SaleService) run(s service.Service) error {
-	log.Printf("%v", se.ConfigFile.Db.Login)
-	manager.InitService(se)
+	se.Manager.InitService()
 	return nil
 }
 
 func (se *SaleService) Stop(s service.Service) error {
-	manager.StopService()
+	se.Manager.StopService()
 	log.Print("I'm Stopping!")
 	return nil
 }
@@ -50,28 +47,36 @@ func (se *SaleService) Status(s service.Service) error {
 	return nil
 }
 
-func ReadConfig() (*config.Config, bool) {
-	var config = config.Config{}
-	config.Load()
-	if config.LogFile != "" {
-		file, err := os.OpenFile(config.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
-		if err != nil {
-			log.Panic(err)
-		}
-		fmt.Println(config.Db.Login)
-		log.SetOutput(file)
-		return &config, true
+func (se *SaleService) InitLogger() {
+	var err error
+	se.Logger, err = logger.New(se.ConfigFile.Log, se.ConfigFile.PrefixLog, se.ConfigFile.LogAvalable, se.ConfigFile.LogEnable)
+	if err != nil {
+		log.Println(err.Error())
 	}
-	return &config, true
+	se.Logger.Print("Load Logger...")
+}
+
+func (se *SaleService) ReadConfig() {
+	config := &config.Config{}
+	config.Load()
+	se.ConfigFile = config
+	log.Println("Load config...")
+}
+
+func (se *SaleService) InitControlConsole(s service.Service) {
+	svcFlag := flag.String("start", "", "start programm.")
+	flag.Parse()
+	if len(*svcFlag) != 0 {
+		err := service.Control(s, *svcFlag)
+		if err != nil {
+			log.Printf("Valid actions: %q\n", service.ControlAction)
+			log.Fatal(err)
+		}
+		return
+	}
 }
 
 func Init() {
-	var logger service.Logger
-	svcFlag := flag.String("start", "", "start programm.")
-	log.SetFlags(log.Lshortfile)
-	flag.Parse()
-	config, _ := ReadConfig()
-	log.Println("Load Config...")
 	options := make(service.KeyValue)
 	options["Restart"] = "on-success"
 	options["SuccessExitStatus"] = "1 2 8 SIGKILL"
@@ -83,32 +88,19 @@ func Init() {
 		Option:       options,
 	}
 	prg := &SaleService{}
-	prg.ConfigFile = config
+	prg.ReadConfig()
+	prg.InitLogger()
+	prg.Manager = manager_service.New(prg.ConfigFile)
+	prg.State = 1
 	s, err := service.New(prg, &svcConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
-	prg.State = 1
-	errs := make(chan error, 10)
-	logger, err = s.Logger(errs)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println("Load Logger...")
-	if len(*svcFlag) != 0 {
-		err := service.Control(s, *svcFlag)
-		if err != nil {
-			log.Printf("Valid actions: %q\n", service.ControlAction)
-			log.Fatal(err)
-		}
-		return
-	}
-	log.Println("Start SaleService")
+	prg.InitControlConsole(s)
 	err = s.Run()
 	if err != nil {
-		logger.Error(err)
+		logger.Log.Error(err)
 	}
-
 }
 
 /*

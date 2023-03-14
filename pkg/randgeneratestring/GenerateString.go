@@ -7,12 +7,16 @@ import (
 	"time"
 )
 
+var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-")
+var orderNumberSize int = 32
+
 type GenerateString struct {
 	String string
 }
 
-var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-")
-var orderNumberSize int = 32
+func Init() *GenerateString {
+	return &GenerateString{}
+}
 
 func (gen *GenerateString) getDataOfTimeString() string {
 	today := time.Now()
@@ -51,6 +55,11 @@ func (gen *GenerateString) RandGiud() {
 	gen.String = uuid
 }
 
-func Init() GenerateString {
-	return GenerateString{}
+func (gen *GenerateString) Strimwidth(str string, start, width int, trim_marker string) {
+	result := []byte(str)
+	if len(result) > width {
+		result = result[start:width]
+	}
+	result = append(result, trim_marker...)
+	gen.String = string(result[:])
 }

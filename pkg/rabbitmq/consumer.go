@@ -1,11 +1,12 @@
 package rabbitmq
 
 import (
-	"context"
-	"time"
-	"log"
-	"github.com/pkg/errors"
 	"amqp"
+	"context"
+	"log"
+	"time"
+
+	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -20,24 +21,24 @@ type ConnectorCunsumer interface {
 }
 
 type ConfigConsumer struct {
-	Name,ExchangeName,RoutingKey,ConsumerName string
+	Name, ExchangeName, RoutingKey, ConsumerName string
 }
 
 // Consumer is a RabbitConsumer
 type Consumer struct {
-	config ConfigConsumer
-	conn   ConnectorCunsumer
-	Reconnect chan int 
+	config    ConfigConsumer
+	conn      ConnectorCunsumer
+	Reconnect chan int
 }
 
-func NewConsumer(ctx context.Context,name,consumerName,exchangeName,routingKey string, ch ConnectorCunsumer) (*Consumer, error) {
+func NewConsumer(ctx context.Context, name, consumerName, exchangeName, routingKey string, ch ConnectorCunsumer) (*Consumer, error) {
 	c := &Consumer{
-		config: ConfigConsumer{	Name: name,
+		config: ConfigConsumer{Name: name,
 			ConsumerName: consumerName,
 			ExchangeName: exchangeName,
-			RoutingKey: routingKey,
+			RoutingKey:   routingKey,
 		},
-		conn:           ch,
+		conn:      ch,
 		Reconnect: make(chan int),
 	}
 	log.Println("New Consumer")
@@ -50,47 +51,47 @@ func (c *Consumer) connect(_ context.Context) (<-chan amqp.Delivery, error) {
 	exhangeName := c.config.ExchangeName
 	if len(exhangeName) > 0 {
 		if err = c.conn.ExchangeDeclare(c.config.ExchangeName, "direct", true,
-		false, false,
-		false, nil); err != nil {
-		log.Printf("%v",err)
-		return nil, errors.Wrap(err, "declare a exchange")
+			false, false,
+			false, nil); err != nil {
+			log.Printf("%v", err)
+			return nil, errors.Wrap(err, "declare a exchange")
 		}
-	}else {
+	} else {
 		exhangeName = "amq.topic"
-	} 
+	}
 	_, err = c.conn.QueueDeclare(
 		c.config.Name, // name
-		true,                 // durable
-		false,                // delete when unused
-		false,                // exclusive
-		false,                // no-wait
-		nil,                 // arguments
+		true,          // durable
+		false,         // delete when unused
+		false,         // exclusive
+		false,         // no-wait
+		nil,           // arguments
 	)
 	if err != nil {
-		log.Printf("%v",err)
+		log.Printf("%v", err)
 		return nil, errors.Wrap(err, "QueueDeclare")
 	}
 	if err = c.conn.QueueBind(
-		c.config.Name,  // queue name
-		c.config.RoutingKey,   // routing key
-		exhangeName, // exchange
+		c.config.Name,       // queue name
+		c.config.RoutingKey, // routing key
+		exhangeName,         // exchange
 		false,
 		nil,
 	); err != nil {
-		log.Printf("%v",err)
+		log.Printf("%v", err)
 		return nil, errors.Wrap(err, "bind to queue")
 	}
 	msg, err = c.conn.Consume(
-	c.config.Name,   // queue
-	c.config.ConsumerName, // consume
-		false,                  // auto-ack
-		false,                  // exclusive
-		false,                  // no-local
-		false,                  // no-wait
-		nil,                    // args
+		c.config.Name,         // queue
+		c.config.ConsumerName, // consume
+		false,                 // auto-ack
+		false,                 // exclusive
+		false,                 // no-local
+		false,                 // no-wait
+		nil,                   // args
 	)
 	if err != nil {
-		log.Printf("%v",err)
+		log.Printf("%v", err)
 		return nil, errors.Wrap(err, "consume message")
 	}
 	return msg, nil
@@ -133,10 +134,11 @@ func (c *Consumer) subscribe(ctx context.Context, errorGroup *errgroup.Group, su
 					log.Println("ack")
 				}
 			} else {
-				log.Printf("%#v",c.conn)
+				log.Printf("%#v", c.conn)
 				for {
 					select {
-						case <-ctx.Done(): {
+					case <-ctx.Done():
+						{
 							log.Println("connection watcher stopped")
 							if err := subscriber.Shutdown(ctx); err != nil {
 								log.Println("shutdown handler")
@@ -144,7 +146,8 @@ func (c *Consumer) subscribe(ctx context.Context, errorGroup *errgroup.Group, su
 							}
 							return ctx.Err()
 						}
-						case _,ok := <-c.Reconnect: {
+					case _, ok := <-c.Reconnect:
+						{
 							if !ok {
 								return nil
 							}

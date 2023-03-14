@@ -1,0 +1,5 @@
+package sberpay
+
+import (
+	"testing"
+)

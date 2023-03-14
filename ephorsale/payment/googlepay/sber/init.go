@@ -3,8 +3,8 @@ package sber
 import (
 	"encoding/json"
 	config "ephorservices/config"
-	"ephorservices/ephorsale/payment/interfacePayment"
-	transaction "ephorservices/ephorsale/transaction"
+	"ephorservices/ephorsale/payment/interface/payment"
+	transaction "ephorservices/ephorsale/transaction/transaction_struct"
 	parserTypes "ephorservices/pkg/parser/typeParse"
 	"fmt"
 	"log"
@@ -28,7 +28,7 @@ type NewSberGooglePayStruct struct {
 	SberGooglePay
 }
 
-func (sberGPay NewSberGooglePayStruct) New(conf *config.Config) interfacePayment.Payment /* тип Payment*/ {
+func (sberGPay NewSberGooglePayStruct) New(conf *config.Config) payment.Payment /* тип Payment*/ {
 	Core := InitCore(conf)
 	Http := InitHttp(conf)
 	return &NewSberGooglePayStruct{
